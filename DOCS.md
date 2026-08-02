@@ -28,7 +28,8 @@ filtering.
   your reMarkable; `retention.mode: "keep_last_n"` cleans up older editions there afterward so
   your device doesn't accumulate every edition forever (see "Retention" below).
 - **Zero-effort first run.** A fresh install seeds itself with realistic example newspapers (see
-  "Installation" below) so you get a working PDF before you've configured anything.
+  "Installation" below), ready to go as soon as you've paired a reMarkable — no need to write a
+  config from scratch.
 
 ## Configuration: two layers
 
@@ -125,8 +126,9 @@ through untouched.
 1. Add `https://github.com/Smengerl/goosepaper-addon` under **Settings → Add-ons → Add-on
    Store → ⋮ → Repositories**.
 2. Install and start **Goosepaper** from the store. On first start it seeds `/config` with the
-   example newspapers automatically (see Configuration above) — no manual setup needed to see it
-   produce a PDF. `/config` is the add-on's own private, persistent config storage (maps to
+   example newspapers automatically (see Configuration above) — no manual setup needed to get a
+   working config. It won't generate or schedule anything yet, though: pairing (next step) comes
+   first. `/config` is the add-on's own private, persistent config storage (maps to
    `/app_configs/goosepaper` on the host — some Supervisor versions still call this
    `/addon_configs/goosepaper`) — reach it to edit those files with another add-on that can
    browse it (e.g. Samba, Studio Code Server).
@@ -140,8 +142,8 @@ through untouched.
 
    Either way the token is written under `/data` (the add-on's private storage) and reused after
    that — pairing survives restarts and updates. The add-on checks pairing on every start and
-   logs a clear warning if it's missing or no longer valid (see Logs below) — newspaper
-   generation still works without it, only reMarkable delivery needs it.
+   refuses to start if it's missing or no longer valid (see Logs below), rather than schedule
+   newspapers that could only fail on delivery — pair first, then (re)start the add-on.
 4. Edit the seeded `*.goosepaper.json` files and `addon_config.json` to your own feeds,
    reMarkable folder, and schedule. It runs a scheduler (APScheduler, one cron job per enabled
    newspaper from `addon_config.json`) as its main process — editing a `*.goosepaper.json` file

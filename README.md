@@ -17,8 +17,8 @@ Pull in what you actually want to read:
 Run more than one newspaper at once — a daily news digest, a puzzle booklet for the weekend, a
 kids' edition — each with its own schedule, sections, and reMarkable folder.
 
-On first install, the add-on seeds itself with working example newspapers, so you get a real PDF
-without any setup — then you edit those to make them yours.
+On first install, the add-on seeds itself with working example newspapers, ready to edit into
+your own — you'll just need to pair a reMarkable before the add-on will start.
 
 **Full documentation** — configuration format, installation, and day-to-day usage — is in
 [DOCS.md](DOCS.md), shown under this add-on's own Documentation tab in Home Assistant. Built on
