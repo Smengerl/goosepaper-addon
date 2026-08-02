@@ -36,6 +36,19 @@
       ]
     },
     {
+      "title": "Business (Amazon ticker example)",
+      "sources": [
+        {
+          "name": "Google News Business",
+          "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en",
+          "limit": 10,
+          "byline": "none",
+          "body_source": "summary",
+          "accept_title_patterns": ["amazon", "amzn"]
+        }
+      ]
+    },
+    {
       "title": "Wikipedia",
       "sources": [
         { "type": "wikipedia", "name": "Wikipedia Top News" }

@@ -64,9 +64,34 @@ sections, each with its sources:
 
 Source `"type"` defaults to `"rss"` when omitted. Other types: `"wikipedia"`, `"weather"`
 (Open-Meteo, needs `lat`/`lon`), and `"puzzle"` (`puzzle_type`: sudoku/binoxxo/futoshiki/
-kakuro/shikaku, plus `difficulty`, `count`, `box_size` for sudoku). `content_skip_filters`/
-`skip_title_patterns` on an `"rss"` source are applied natively by the fork's
-[`RSSFeedStoryProvider`](https://github.com/Smengerl/goosepaper-logicpuzzles/blob/mainline/goosepaper/storyprovider/rss.py).
+kakuro/shikaku, plus `difficulty`, `count`, `box_size` for sudoku).
+
+An `"rss"` source can clean up fetched article HTML with `"content_skip_filters"`, a list of
+filter objects — each object's `"type"` decides its shape, and each only accepts the keys valid
+for its own type (a `"css"` filter can't also carry `"pattern"`/`"flags"`, nor can a `"regex"`
+filter carry `"selector"` — rejected at config-load time, not just ignored):
+- `{"type": "css", "selector": "..."}` — `selector` required — removes every element matching
+  the selector, e.g. ad blocks or cookie banners.
+- `{"type": "regex", "pattern": "...", "flags": "i"}` — `pattern` required, `flags` optional
+  (any of `i`/`s`/`m`/`x`) — strips matching text from the raw HTML.
+
+Skip whole entries by title instead with `"skip_title_patterns"` — unlike `content_skip_filters`,
+a flat list of regexes with no object wrapper, matched case-insensitively against the entry
+title.
+
+Both have an "accept" counterpart for the inverse case — narrowing down instead of cleaning up.
+`"content_accept_filters"` is a list of `{"selector": "..."}` objects — no `"type"` field at all,
+CSS only — tried in list order, keeping only the first matching element's contents instead of the
+whole parsed tree (useful when the fork's article extraction misses and you know exactly which
+container holds the real content; falls through unchanged if nothing matches). `"accept_title_patterns"`
+is, like `skip_title_patterns`, a flat list of regexes — only entries matching at least one are
+kept, e.g. `["amazon", "amzn"]` on an otherwise general business feed, to build a single-company
+news ticker.
+
+All four fields are applied natively by the fork's
+[`RSSFeedStoryProvider`](https://github.com/Smengerl/goosepaper-logicpuzzles/blob/mainline/goosepaper/storyprovider/rss.py)
+— this project's own schema (`config_schema.py`) only validates their shape before passing them
+through untouched.
 
 ## Installation
 

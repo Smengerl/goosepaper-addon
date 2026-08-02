@@ -43,10 +43,20 @@ class ContentFilter(StrictModel):
 
     @model_validator(mode="after")
     def _check_required_field(self) -> "ContentFilter":
-        if self.type == "css" and not self.selector:
-            raise ValueError("content_skip_filters: type 'css' requires a non-empty 'selector'")
-        if self.type == "regex" and not self.pattern:
-            raise ValueError("content_skip_filters: type 'regex' requires a non-empty 'pattern'")
+        # selector/pattern/flags aren't a shared pool between the two types - each declared field
+        # being individually optional (needed since one type requires it, the other forbids it)
+        # means StrictModel's extra="forbid" alone can't catch e.g. a "css" filter that also sets
+        # "pattern" (meant for "regex"); it's a legal field name, just wrong for this type.
+        if self.type == "css":
+            if not self.selector:
+                raise ValueError("content_skip_filters: type 'css' requires a non-empty 'selector'")
+            if self.pattern is not None or self.flags:
+                raise ValueError("content_skip_filters: type 'css' does not accept 'pattern'/'flags'")
+        if self.type == "regex":
+            if not self.pattern:
+                raise ValueError("content_skip_filters: type 'regex' requires a non-empty 'pattern'")
+            if self.selector is not None:
+                raise ValueError("content_skip_filters: type 'regex' does not accept 'selector'")
         return self
 
 
