@@ -50,6 +50,15 @@ class ContentFilter(StrictModel):
         return self
 
 
+class ContentAcceptFilter(StrictModel):
+    """One CSS-selector accept rule - narrows the article down to just this container instead of
+    removing anything, applied natively by the fork. Only CSS is supported (see the fork's own
+    contentfilters.py docstring): a regex accept would just reduce a story to whatever static
+    phrase the pattern matches, not coherent prose, so there's no 'type' field here."""
+
+    selector: str
+
+
 class RSSSource(StrictModel):
     type: Literal["rss"] = "rss"
     name: str
@@ -60,6 +69,8 @@ class RSSSource(StrictModel):
     body_source: Literal["auto", "content", "summary", "article"] = "article"
     skip_title_patterns: List[str] = Field(default_factory=list)
     content_skip_filters: List[ContentFilter] = Field(default_factory=list)
+    accept_title_patterns: List[str] = Field(default_factory=list)
+    content_accept_filters: List[ContentAcceptFilter] = Field(default_factory=list)
     min_body_text_length: Optional[int] = None
 
 

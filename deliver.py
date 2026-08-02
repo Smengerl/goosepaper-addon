@@ -154,6 +154,10 @@ class ConfiguredRSSProvider(StoryProvider):
                 f.model_dump(exclude_none=True) for f in source.content_skip_filters
             ],
             skip_title_patterns=source.skip_title_patterns,
+            content_accept_filters=[
+                f.model_dump(exclude_none=True) for f in source.content_accept_filters
+            ],
+            accept_title_patterns=source.accept_title_patterns,
         )
 
     def get_stories(self) -> List:
