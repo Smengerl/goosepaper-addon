@@ -1,10 +1,34 @@
 # Goosepaper — Documentation
 
-Generates personalized newspaper PDFs from RSS feeds (plus Wikipedia, weather, and puzzle
+Generates personalized newspaper PDFs from RSS feeds (plus Wikipedia, weather, puzzle, and comic
 sections) and delivers them to a reMarkable tablet, on a schedule you set per newspaper. Built on
 [goosepaper-logicpuzzles](https://github.com/Smengerl/goosepaper-logicpuzzles), a public fork of
 [goosepaper](https://github.com/j6k4m8/goosepaper) extended with a puzzle-generator provider
-(Sudoku, Binoxxo, Futoshiki, Kakuro, Shikaku) and native RSS ad/paywall filtering.
+(Sudoku, Binoxxo, Futoshiki, Kakuro, Shikaku), a daily-comic provider, and native RSS ad/paywall
+filtering.
+
+## What it can do
+
+- **Multiple newspapers, independently scheduled.** Run a daily news digest, a weekend puzzle
+  booklet, and a kids' edition side by side — each with its own cron schedule, reMarkable folder,
+  and retention policy, defined once in `addon_config.json`.
+- **RSS with real cleanup, not just raw feed dumps.** Strip ad blocks, cookie banners, and
+  paywall stubs out of fetched articles; drop sponsored/paywalled entries entirely by title
+  before they're even fetched; or go the other way and narrow a general feed down to just the
+  entries you actually want (e.g. a single-company stock ticker out of a general business feed).
+  See "Filtering RSS content" below for the full set of options.
+- **Wikipedia**'s current-events section, no configuration needed beyond adding the source.
+- **Weather** forecasts (Open-Meteo) for any location, in summary/hourly/daily form.
+- **Logic puzzles** — Sudoku, Binoxxo, Futoshiki, Kakuro, Shikaku — generated fresh on every run
+  (not pulled from a bank of pre-made puzzles), with configurable difficulty, and optional
+  solutions/rules explanations placed inline, in a footer, or collected in an appendix at the end
+  of the newspaper.
+- **Daily comic strips** — XKCD, Calvin and Hobbes, or Garfield — embedded as an image story.
+- **Automatic reMarkable delivery and retention.** Each edition uploads straight to a folder on
+  your reMarkable; `retention.mode: "keep_last_n"` cleans up older editions there afterward so
+  your device doesn't accumulate every edition forever (see "Retention" below).
+- **Zero-effort first run.** A fresh install seeds itself with realistic example newspapers (see
+  "Installation" below) so you get a working PDF before you've configured anything.
 
 ## Configuration: two layers
 
@@ -67,6 +91,8 @@ Source `"type"` defaults to `"rss"` when omitted. Other types: `"wikipedia"`, `"
 kakuro/shikaku, plus `difficulty`, `count`, `box_size` for sudoku), and `"comic"`
 (`comic_type`: xkcd/cah/garfield - downloads today's strip and embeds it as an image story).
 
+### Filtering RSS content
+
 An `"rss"` source can clean up fetched article HTML with `"content_skip_filters"`, a list of
 filter objects — each object's `"type"` decides its shape, and each only accepts the keys valid
 for its own type (a `"css"` filter can't also carry `"pattern"`/`"flags"`, nor can a `"regex"`
@@ -101,8 +127,9 @@ through untouched.
 2. Install and start **Goosepaper** from the store. On first start it seeds `/config` with the
    example newspapers automatically (see Configuration above) — no manual setup needed to see it
    produce a PDF. `/config` is the add-on's own private, persistent config storage (maps to
-   `/addon_configs/goosepaper` on the host) — reach it to edit those files with another add-on
-   that can browse `/addon_configs` (e.g. Samba, Studio Code Server).
+   `/app_configs/goosepaper` on the host — some Supervisor versions still call this
+   `/addon_configs/goosepaper`) — reach it to edit those files with another add-on that can
+   browse it (e.g. Samba, Studio Code Server).
 3. One-time reMarkable pairing — two ways:
    - **GUI (recommended)**: get an 8-character code from
      https://my.remarkable.com/pair/app, then enter it under **Settings → Add-ons → Goosepaper →

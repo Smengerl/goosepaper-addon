@@ -43,13 +43,59 @@ non-obvious steps; skipping any of them leads to "I pushed but nothing changed" 
 
 ## Known nits (not blocking, but worth fixing opportunistically)
 
-- Supervisor logs a validation warning on every load: `App 'Goosepaper' uses legacy map type
-  'addon_config'; use 'app_config' instead.` `config.yaml`'s `map: [addon_config:rw]` should be
-  updated to `app_config:rw` to match the current schema and silence this - not yet done.
-- No prebuilt image (see `README.md`'s Roadmap section: a GitHub Actions workflow using
+- No prebuilt image (see `DEVELOPMENT.md`'s Roadmap section: a GitHub Actions workflow using
   `home-assistant/builder`, pushing to a registry, is the intended fix for the slow-build pain
   described above). Worth prioritizing given how much friction the on-device build causes for
   routine iteration.
+
+## Supervisor terminology: "addon" vs. "app"
+
+Home Assistant renamed add-ons to "apps" in the 2026.2 release, and Supervisor's internals
+already reflect it (`supervisor.apps.app`, `supervisor.apps.manager`, `supervisor.apps.validate`,
+paths like `/data/app_configs/<slug>` and `/data/apps/data/<slug>` - all confirmed via real logs
+on the user's instance) even though the HA UI still says "Add-ons" everywhere a human sees it.
+
+Concretely, `config.yaml`'s `map:` key should be `app_config:rw`, not the older `addon_config:rw`
+- confirmed as a deliberate, in-progress migration via
+[Supervisor issue #6905](https://github.com/home-assistant/supervisor/issues/6905) ("introduce
+new mapping options, and with them mount to the new location... clear migration path"), which is
+why Supervisor logs a "legacy map type" warning for `addon_config` rather than rejecting it
+outright - both work today, `app_config` is the forward-looking one.
+
+**The official docs are behind the actual software here** -
+[developers.home-assistant.io/docs/apps/configuration](https://developers.home-assistant.io/docs/apps/configuration/)
+still lists only `addon_config` as a valid `map` value as of this writing, with no mention of
+`app_config` at all. Don't take that page as gospel for anything rename-adjacent; if something
+HA-facing behaves unexpectedly and a doc or example you're going by says "addon", try
+the "app" equivalent first before assuming it's actually broken.
+
+## Documentation to keep current with every change
+
+This split is confirmed against official guidance in
+[Presenting your app](https://developers.home-assistant.io/docs/apps/presentation/) - README.md
+is "a short description of what the app can do" shown in the store, DOCS.md "helps the consumer
+of your app to understand its usage, explains configuration options", and CHANGELOG.md should
+follow the [Keep a Changelog](https://keepachangelog.com/) format (that page's own explicit
+recommendation) and is what users see as an upgrade notice. Update the ones a change actually
+touches, every time - not as a separate cleanup pass later:
+
+- **`CHANGELOG.md`** - every feature or user-visible change gets an entry under the version it
+  shipped in, written at the same time as the `config.yaml` version bump (same commit, or the
+  same small group of commits). If there's no entry for the version you just bumped to, the bump
+  isn't finished yet.
+- **`README.md`** - user-facing, not developer-facing. Home Assistant shows this file **verbatim**
+  as the add-on's `long_description` in the Add-on Store (confirmed via `ha_get_addon`'s API
+  response) - anyone browsing the store sees exactly what's in this file, not just GitHub
+  visitors. It must read as "what does this add-on do and why would I install it", in plain
+  language a Home Assistant user (not necessarily a developer) can follow.
+- **`DOCS.md`** - the detailed reference, shown under the add-on's own "Documentation" tab in HA.
+  Should cover the full feature set (not just the config file format) and walk through
+  installation, configuration, and day-to-day usage in enough depth that a user never needs to
+  read the source to answer "can this do X" or "how do I configure Y".
+- **`DEVELOPMENT.md`** - build-from-source instructions, `uv`/Docker internals, and roadmap/TODO
+  planning. Not shown anywhere in HA's UI - this is the one file in the set actually aimed at
+  developers/contributors, kept separate specifically so it never leaks into what an end user
+  sees.
 
 ## Dependency on the fork
 

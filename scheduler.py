@@ -62,12 +62,17 @@ def _read_pairing_code_option() -> str:
     return (options.get("remarkable_pairing_code") or "").strip()
 
 
-def _check_and_complete_remarkable_pairing() -> None:
+def _check_and_complete_remarkable_pairing() -> bool:
     """Startup diagnostic + optional self-service pairing, so a missing/broken pairing shows up
-    immediately in the logs instead of surfacing as a silent upload failure days later. Never
-    blocks startup - RSS/puzzle generation works fine without pairing, only delivery needs it -
-    and catches broadly, not just auth errors, since a network hiccup at boot (reMarkable
-    unreachable, DNS not up yet) must not crash the add-on either.
+    immediately in the logs instead of surfacing as a silent upload failure days later, and so no
+    cron jobs get scheduled against a delivery that can only fail. Returns False only when there
+    is truly no usable pairing - no existing token and no working pairing code - in which case the
+    caller refuses to start rather than schedule newspapers that would just fail on delivery.
+
+    A transient verification error against an *already-paired* token (e.g. reMarkable unreachable,
+    DNS not up yet at boot) does NOT block startup - that's a network hiccup, not a pairing
+    problem, and treating it as fatal would crash-loop the add-on. Returns True in that case, same
+    as a fully verified pairing.
 
     If a `remarkable_pairing_code` add-on option is set (Settings -> Add-ons -> Goosepaper ->
     Configuration - the GUI alternative to shelling in and running `remarkapy init`) and no
@@ -81,7 +86,7 @@ def _check_and_complete_remarkable_pairing() -> None:
     try:
         client.refresh_user_token()
         logger.info("Honk! reMarkable pairing verified.")
-        return
+        return True
     except ConfigNotFoundError:
         pass
     except Exception as err:
@@ -90,28 +95,31 @@ def _check_and_complete_remarkable_pairing() -> None:
             "until you re-pair.",
             err,
         )
-        return
+        return True
 
     code = _read_pairing_code_option()
     if not code:
-        logger.warning(
-            "Honk! No reMarkable pairing found - newspapers will still generate, but delivery "
-            "will fail. Pair via Settings -> Add-ons -> Goosepaper -> Configuration "
-            "(remarkable_pairing_code, get one from https://my.remarkable.com/pair/app), or run "
-            "'remarkapy init' in the add-on's shell."
+        logger.error(
+            "Honk! No reMarkable pairing found - refusing to start, since scheduled newspapers "
+            "would only fail on delivery. Pair via Settings -> Add-ons -> Goosepaper -> "
+            "Configuration (remarkable_pairing_code, get one from "
+            "https://my.remarkable.com/pair/app), or run 'remarkapy init' in the add-on's shell, "
+            "then restart the add-on."
         )
-        return
+        return False
 
     try:
         client.register_device(code)
         logger.info("Honk! reMarkable pairing complete via the configured pairing code.")
+        return True
     except Exception as err:
-        logger.warning(
-            "Honk! reMarkable pairing failed with the configured code (%s) - get a fresh code "
-            "from https://my.remarkable.com/pair/app and update it under Settings -> Add-ons -> "
-            "Goosepaper -> Configuration.",
+        logger.error(
+            "Honk! reMarkable pairing failed with the configured code (%s) - refusing to start. "
+            "Get a fresh code from https://my.remarkable.com/pair/app and update it under "
+            "Settings -> Add-ons -> Goosepaper -> Configuration, then restart the add-on.",
             err,
         )
+        return False
 
 
 def _run_newspaper(newspaper_id: str) -> None:
@@ -124,7 +132,8 @@ def _run_newspaper(newspaper_id: str) -> None:
 
 def main() -> int:
     _seed_default_config()
-    _check_and_complete_remarkable_pairing()
+    if not _check_and_complete_remarkable_pairing():
+        return 1
 
     try:
         addon_config = config_schema.load_addon_config(ADDON_CONFIG_PATH)

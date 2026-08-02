@@ -1,7 +1,7 @@
 name: Goosepaper
 version: "1.1.0"
 slug: goosepaper
-description: Personalized newspaper PDFs from RSS feeds, Wikipedia, weather, and puzzles, delivered to a reMarkable tablet.
+description: Personalized newspaper PDFs from RSS feeds, Wikipedia, weather, puzzles, and comics, delivered to a reMarkable tablet.
 url: https://github.com/Smengerl/goosepaper-addon
 arch:
   - aarch64
@@ -9,7 +9,7 @@ startup: application
 boot: auto
 init: false
 map:
-  - addon_config:rw
+  - app_config:rw
 options:
   remarkable_pairing_code: ""
 schema:
