@@ -62,3 +62,15 @@ fork changes, run `uv lock` locally and commit the updated `uv.lock`.
 > `config/addon_config.json`), are both verified.
 
 Configuration format, retention, and HA installation are documented in [DOCS.md](DOCS.md).
+
+## Roadmap
+
+- **Build strategy**: currently ships as a Supervisor build — `config.yaml` has no `image:`
+  field, so HA Supervisor builds the image on-device from this repo's `Dockerfile` on install.
+  **TODO**: once the Supervisor-build path is confirmed working end-to-end, add a GitHub Actions
+  workflow (using the official
+  [`home-assistant/builder`](https://github.com/home-assistant/builder) action) to build and push
+  multi-arch images to a registry (e.g. `ghcr.io`) on each version bump, then add the matching
+  `image:` field to `config.yaml`. Saves users from building WeasyPrint/Pango/`uv sync` from
+  source on constrained hardware (e.g. HA Green); not needed for a single-user Supervisor-build
+  install.
