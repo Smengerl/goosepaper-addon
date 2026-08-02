@@ -118,6 +118,7 @@ _styles.Style.get_stylesheets = _patched_get_stylesheets
 # Import after the monkeypatches above so every code path already sees the patched behavior.
 from goosepaper.auth import auth_client  # noqa: E402
 from goosepaper.goosepaper import Goosepaper  # noqa: E402
+from goosepaper.storyprovider.comic import DailyComicStoryProvider  # noqa: E402
 from goosepaper.storyprovider.puzzle import PuzzleStoryProvider  # noqa: E402
 from goosepaper.storyprovider.rss import RSSFeedStoryProvider  # noqa: E402
 from goosepaper.storyprovider.storyprovider import StoryProvider  # noqa: E402
@@ -223,6 +224,10 @@ def _build_provider(
         if source.puzzle_type == "sudoku":
             kwargs["box_size"] = source.box_size
         return SectionTaggedProvider(PuzzleStoryProvider(**kwargs), section_title)
+    if source.type == "comic":
+        return SectionTaggedProvider(
+            DailyComicStoryProvider(comic_type=source.comic_type), section_title
+        )
     raise ValueError(f"Unknown source type {source.type!r}")
 
 

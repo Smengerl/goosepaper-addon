@@ -449,12 +449,13 @@ woff = [
 [[package]]
 name = "goosepaper"
 version = "0.8.1"
-source = { git = "https://github.com/Smengerl/goosepaper-logicpuzzles?branch=mainline#60465063f4588016161f94e2abc519deb06b1717" }
+source = { git = "https://github.com/Smengerl/goosepaper-logicpuzzles?branch=mainline#09fd35490d26f787a0a1d549894ab7a1ae78dbd3" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "ebooklib" },
     { name = "feedparser" },
     { name = "lxml", extra = ["html-clean"] },
+    { name = "pillow" },
     { name = "readability-lxml" },
     { name = "remarkapy" },
     { name = "requests" },

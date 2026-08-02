@@ -121,8 +121,14 @@ class PuzzleSource(StrictModel):
     explanation: Literal["none", "inline", "footer", "appendix"] = "none"
 
 
+class ComicSource(StrictModel):
+    type: Literal["comic"]
+    comic_type: Literal["xkcd", "cah", "garfield"]
+
+
 Source = Annotated[
-    Union[RSSSource, WikipediaSource, WeatherSource, PuzzleSource], Field(discriminator="type")
+    Union[RSSSource, WikipediaSource, WeatherSource, PuzzleSource, ComicSource],
+    Field(discriminator="type"),
 ]
 
 
