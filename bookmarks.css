@@ -1,0 +1,28 @@
+/* Controls the PDF outline (what reMarkable's own "headings" navigator shows), independent of
+   the in-document Contents page. WeasyPrint's default UA stylesheet turns every <h1>-<h6> into a
+   bookmark at a level matching its tag, which - combined with goosepaper rendering section
+   headers as <h2> and story headlines as <h1> - produced a flat, broken outline where article
+   subheadings (e.g. a product review's own "VORTEILE"/"NACHTEILE" <h2>/<h3> tags, preserved
+   verbatim from the source site's markup) cluttered the same list as section and story titles.
+
+   Explicit levels here make sections the outline's top level, story headlines nested one level
+   under their section (bookmark nesting follows document order: a level-2 entry becomes a child
+   of the nearest preceding level-1 entry), and suppress bookmarks entirely for any heading that
+   originated inside a story's own body content. */
+
+h2.story-section-title {
+  bookmark-level: 1;
+}
+
+h1.story-headline {
+  bookmark-level: 2;
+}
+
+.story-body h1,
+.story-body h2,
+.story-body h3,
+.story-body h4,
+.story-body h5,
+.story-body h6 {
+  bookmark-level: none;
+}

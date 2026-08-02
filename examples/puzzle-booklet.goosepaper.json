@@ -1,0 +1,44 @@
+{
+  "defaults": {
+    "min_body_text_length": 120
+  },
+  "paper": {
+    "style": "Academy",
+    "font_size": 10,
+    "page_profile": "paper_pro",
+    "table_of_contents": true,
+    "layout": "1col"
+  },
+  "sections": [
+    {
+      "title": "Sudoku Easy",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "sudoku", "difficulty": "easy", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Kakuro Easy",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "kakuro", "difficulty": "easy", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Sudoku Medium",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "sudoku", "difficulty": "medium", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Shikaku Medium",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "shikaku", "difficulty": "medium", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Binoxxo Hard",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "binoxxo", "difficulty": "hard", "count": 2, "explanation": "footer" }
+      ]
+    }
+  ]
+}

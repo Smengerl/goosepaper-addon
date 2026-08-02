@@ -1,0 +1,22 @@
+{
+  "newspapers": [
+    {
+      "id": "daily-news",
+      "enabled": true,
+      "title": "Daily News",
+      "schedule": "0 6 * * *",
+      "goosepaper_config": "daily-news.goosepaper.json",
+      "remarkable_folder": "Daily News",
+      "retention": { "mode": "keep_last_n", "keep_last_n": 7 }
+    },
+    {
+      "id": "puzzles",
+      "enabled": true,
+      "title": "Puzzle Booklet",
+      "schedule": "0 7 * * 6",
+      "goosepaper_config": "puzzle-booklet.goosepaper.json",
+      "remarkable_folder": "Puzzle Booklet",
+      "retention": { "mode": "keep_last_n", "keep_last_n": 4 }
+    }
+  ]
+}

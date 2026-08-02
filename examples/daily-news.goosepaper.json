@@ -1,0 +1,61 @@
+{
+  "defaults": {
+    "min_body_text_length": 120
+  },
+  "paper": {
+    "style": "FifthAvenue",
+    "font_size": 9,
+    "page_profile": "paper_pro",
+    "table_of_contents": true,
+    "layout": "auto"
+  },
+  "sections": [
+    {
+      "title": "Tech",
+      "sources": [
+        {
+          "name": "heise online",
+          "url": "https://www.heise.de/rss/heise-atom.xml",
+          "limit": 5,
+          "max_age_days": 1,
+          "byline": "none",
+          "body_source": "article",
+          "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
+          "content_skip_filters": [
+            { "type": "css", "selector": "div.Gallery" }
+          ]
+        },
+        {
+          "name": "TechCrunch",
+          "url": "https://techcrunch.com/feed/",
+          "limit": 5,
+          "max_age_days": 1,
+          "byline": "none",
+          "body_source": "article"
+        }
+      ]
+    },
+    {
+      "title": "Wikipedia",
+      "sources": [
+        { "type": "wikipedia", "name": "Wikipedia Top News" }
+      ]
+    },
+    {
+      "title": "Weather",
+      "sources": [
+        {
+          "type": "weather",
+          "name": "Berlin",
+          "lat": 52.52,
+          "lon": 13.405,
+          "timezone": "Europe/Berlin",
+          "units": "celsius",
+          "mode": "daily",
+          "days": 3,
+          "clock_format": "24h"
+        }
+      ]
+    }
+  ]
+}
