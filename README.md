@@ -22,9 +22,10 @@ uv sync
 sanitized templates to copy in and adjust.
 
 First upload needs reMarkable pairing: `uv run remarkapy init` (interactive, asks for the
-one-time code from https://my.remarkable.com/device/browser/connect). The token lands in
+8-character one-time code from https://my.remarkable.com/pair/app). The token lands in
 `~/.rmapi` (or wherever `remarkapy`'s own config resolution finds/creates it) and is reused after
-that.
+that. On the actual add-on (via Docker/HA) this can also be done from the add-on's Configuration
+GUI instead of a shell — see DOCS.md.
 
 ## Running in Docker
 

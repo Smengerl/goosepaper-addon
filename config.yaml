@@ -10,3 +10,7 @@ boot: auto
 init: false
 map:
   - addon_config:rw
+options:
+  remarkable_pairing_code: ""
+schema:
+  remarkable_pairing_code: "str?"

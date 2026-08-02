@@ -7,6 +7,7 @@ itself needs a container restart to pick up, since the job list is built once at
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import pathlib
@@ -15,6 +16,8 @@ import signal
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
+from remarkapy.client import Client
+from remarkapy.exceptions import ConfigNotFoundError
 
 import config_schema
 import deliver
@@ -25,6 +28,7 @@ logger = logging.getLogger("goosepaper-addon")
 ADDON_CONFIG_PATH = os.environ.get("ADDON_CONFIG", "/config/addon_config.json")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/data/output")
 EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent / "examples"
+OPTIONS_PATH = pathlib.Path("/data/options.json")
 
 
 def _seed_default_config() -> None:
@@ -50,6 +54,66 @@ def _seed_default_config() -> None:
     )
 
 
+def _read_pairing_code_option() -> str:
+    try:
+        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ""
+    return (options.get("remarkable_pairing_code") or "").strip()
+
+
+def _check_and_complete_remarkable_pairing() -> None:
+    """Startup diagnostic + optional self-service pairing, so a missing/broken pairing shows up
+    immediately in the logs instead of surfacing as a silent upload failure days later. Never
+    blocks startup - RSS/puzzle generation works fine without pairing, only delivery needs it -
+    and catches broadly, not just auth errors, since a network hiccup at boot (reMarkable
+    unreachable, DNS not up yet) must not crash the add-on either.
+
+    If a `remarkable_pairing_code` add-on option is set (Settings -> Add-ons -> Goosepaper ->
+    Configuration - the GUI alternative to shelling in and running `remarkapy init`) and no
+    valid pairing exists yet, uses it to complete pairing directly; `register_device()` is the
+    same call the interactive wizard makes after reading its code from stdin, just driven from
+    the option instead. A stale/already-used code just fails safely on every restart until the
+    field is updated - once truly paired, the verification above succeeds first and the option
+    is never consulted again.
+    """
+    client = Client(refresh_on_init=False, interactive=False)
+    try:
+        client.refresh_user_token()
+        logger.info("Honk! reMarkable pairing verified.")
+        return
+    except ConfigNotFoundError:
+        pass
+    except Exception as err:
+        logger.warning(
+            "Honk! reMarkable pairing exists but couldn't be verified (%s) - delivery may fail "
+            "until you re-pair.",
+            err,
+        )
+        return
+
+    code = _read_pairing_code_option()
+    if not code:
+        logger.warning(
+            "Honk! No reMarkable pairing found - newspapers will still generate, but delivery "
+            "will fail. Pair via Settings -> Add-ons -> Goosepaper -> Configuration "
+            "(remarkable_pairing_code, get one from https://my.remarkable.com/pair/app), or run "
+            "'remarkapy init' in the add-on's shell."
+        )
+        return
+
+    try:
+        client.register_device(code)
+        logger.info("Honk! reMarkable pairing complete via the configured pairing code.")
+    except Exception as err:
+        logger.warning(
+            "Honk! reMarkable pairing failed with the configured code (%s) - get a fresh code "
+            "from https://my.remarkable.com/pair/app and update it under Settings -> Add-ons -> "
+            "Goosepaper -> Configuration.",
+            err,
+        )
+
+
 def _run_newspaper(newspaper_id: str) -> None:
     logger.info("Honk! Triggering scheduled generation for %r", newspaper_id)
     try:
@@ -60,6 +124,7 @@ def _run_newspaper(newspaper_id: str) -> None:
 
 def main() -> int:
     _seed_default_config()
+    _check_and_complete_remarkable_pairing()
 
     try:
         addon_config = config_schema.load_addon_config(ADDON_CONFIG_PATH)
