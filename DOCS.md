@@ -9,9 +9,12 @@ sections) and delivers them to a reMarkable tablet, on a schedule you set per ne
 ## Configuration: two layers
 
 Both files live under `/config` — this add-on's own persistent, editable folder (see
-Installation below for how to reach it). Sanitized starting points for both live in
-[`examples/`](examples/) — copy them into `/config` and adjust feeds/coordinates/schedules to
-your own.
+Installation below for how to reach it). On first start, if `/config` is empty, the add-on
+automatically seeds it with the sanitized examples from [`examples/`](examples/) — so you get a
+working edition right away, with realistic sections to edit rather than starting from a blank
+file. Edit the seeded `*.goosepaper.json` files (feeds, coordinates) and `addon_config.json`
+(reMarkable folder, schedule) to make them yours; the add-on never overwrites files that already
+exist.
 
 **`addon_config.json`** holds only what a goosepaper config can't express — one entry per
 newspaper, with its schedule, reMarkable folder, retention policy, and a path to its content:
@@ -67,28 +70,25 @@ kakuro/shikaku, plus `difficulty`, `count`, `box_size` for sudoku). `content_ski
 
 ## Installation
 
-1. Add this repository under **Settings → Add-ons → Add-on Store → ⋮ → Repositories**. This repo
-   is **private** (it contains real config files with personal data — feed lists, home
-   coordinates, reMarkable folder names), so a plain `https://github.com/Smengerl/goosepaper-addon`
-   URL will fail with a permission error. Use a URL with a
+1. Add this repository under **Settings → Add-ons → Add-on Store → ⋮ → Repositories**. If it's
+   still private at the time, a plain `https://github.com/Smengerl/goosepaper-addon` URL will
+   fail with a permission error — use a URL with a
    [GitHub personal access token](https://github.com/settings/tokens) (repo-scoped, read-only is
-   enough) embedded instead:
-   `https://<token>@github.com/Smengerl/goosepaper-addon`. Do not make the repo public as a
-   workaround — it would publish that personal data.
-2. Install **Goosepaper** from the store.
-3. Populate `/config` with an `addon_config.json` and its referenced `*.goosepaper.json` files.
-   This folder is the add-on's own private, persistent config storage (maps to
-   `/addon_configs/goosepaper` on the host) — reach it with another add-on that can browse
-   `/addon_configs` (e.g. Samba, Studio Code Server), or by editing the files before first start
-   and copying them in.
-4. One-time reMarkable pairing: open a shell in the running add-on (or `docker exec` if run
+   enough) embedded instead: `https://<token>@github.com/Smengerl/goosepaper-addon`.
+2. Install and start **Goosepaper** from the store. On first start it seeds `/config` with the
+   example newspapers automatically (see Configuration above) — no manual setup needed to see it
+   produce a PDF. `/config` is the add-on's own private, persistent config storage (maps to
+   `/addon_configs/goosepaper` on the host) — reach it to edit those files with another add-on
+   that can browse `/addon_configs` (e.g. Samba, Studio Code Server).
+3. One-time reMarkable pairing: open a shell in the running add-on (or `docker exec` if run
    standalone) and run `remarkapy init`, which asks for the one-time code from
    https://my.remarkable.com/device/browser/connect. The token is written under `/data` (the
    add-on's private storage) and reused after that — pairing survives restarts and updates.
-5. Start the add-on. It runs a scheduler (APScheduler, one cron job per enabled newspaper from
-   `addon_config.json`) as its main process — editing a `*.goosepaper.json` file takes effect on
-   the newspaper's next scheduled run; changing `addon_config.json` itself (schedule, id,
-   enabled) needs an add-on restart, since the job list is built once at startup.
+4. Edit the seeded `*.goosepaper.json` files and `addon_config.json` to your own feeds,
+   reMarkable folder, and schedule. It runs a scheduler (APScheduler, one cron job per enabled
+   newspaper from `addon_config.json`) as its main process — editing a `*.goosepaper.json` file
+   takes effect on the newspaper's next scheduled run; changing `addon_config.json` itself
+   (schedule, id, enabled) needs an add-on restart, since the job list is built once at startup.
 
 ## Retention
 

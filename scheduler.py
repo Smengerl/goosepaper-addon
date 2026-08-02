@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import logging
 import os
+import pathlib
+import shutil
 import signal
 
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -22,6 +24,30 @@ logger = logging.getLogger("goosepaper-addon")
 
 ADDON_CONFIG_PATH = os.environ.get("ADDON_CONFIG", "/config/addon_config.json")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/data/output")
+EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent / "examples"
+
+
+def _seed_default_config() -> None:
+    """First-run convenience: an empty /config volume (a fresh install) would otherwise just
+    error out until someone manually copies files in. Seed it from the sanitized examples/ - baked
+    into the image, see Dockerfile - so the add-on produces a working edition immediately. Never
+    overwrites: only runs when addon_config.json doesn't exist yet."""
+    config_path = pathlib.Path(ADDON_CONFIG_PATH)
+    if config_path.exists() or not EXAMPLES_DIR.is_dir():
+        return
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        for src in EXAMPLES_DIR.iterdir():
+            name = "addon_config.json" if src.name == "addon_config.example.json" else src.name
+            shutil.copy2(src, config_path.parent / name)
+    except OSError as err:
+        logger.warning("Honk! Could not seed default config at %s: %s", config_path.parent, err)
+        return
+    logger.info(
+        "Honk! No %s found - seeded /config with the example newspapers from examples/. Edit "
+        "them (feeds, reMarkable folder, coordinates) to make them yours.",
+        ADDON_CONFIG_PATH,
+    )
 
 
 def _run_newspaper(newspaper_id: str) -> None:
@@ -33,6 +59,8 @@ def _run_newspaper(newspaper_id: str) -> None:
 
 
 def main() -> int:
+    _seed_default_config()
+
     try:
         addon_config = config_schema.load_addon_config(ADDON_CONFIG_PATH)
     except Exception as err:
