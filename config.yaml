@@ -8,9 +8,10 @@ arch:
 startup: application
 boot: auto
 init: false
+watchdog: true
 map:
   - app_config:rw
 options:
   remarkable_pairing_code: ""
 schema:
-  remarkable_pairing_code: "str?"
+  remarkable_pairing_code: "password?"

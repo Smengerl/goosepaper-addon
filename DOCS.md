@@ -144,15 +144,18 @@ source. Both native to the fork's `RSSFeedStoryProvider` as well.
 3. One-time reMarkable pairing — two ways:
    - **GUI (recommended)**: get an 8-character code from
      https://my.remarkable.com/pair/app, then enter it under **Settings → Add-ons → Goosepaper →
-     Configuration** as `remarkable_pairing_code` and save. The add-on picks it up on its next
-     (re)start — no shell access needed.
+     Configuration** as `remarkable_pairing_code` and save (the field is masked, like any other
+     secret). The add-on picks it up on its next (re)start — no shell access needed.
    - **Shell**: open a shell in the running add-on (or `docker exec` if run standalone) and run
      `remarkapy init`, which asks for the same kind of code interactively.
 
    Either way the token is written under `/data` (the add-on's private storage) and reused after
    that — pairing survives restarts and updates. The add-on checks pairing on every start and
    refuses to start if it's missing or no longer valid (see Logs below), rather than schedule
-   newspapers that could only fail on delivery — pair first, then (re)start the add-on.
+   newspapers that could only fail on delivery. If it's currently stopped for exactly that reason,
+   saving a working pairing code is enough on its own — Supervisor's watchdog retries starting it
+   automatically, no manual restart needed. A manual (re)start only matters if the add-on is
+   otherwise running fine and you're just changing the code (e.g. re-pairing to a new tablet).
 4. Edit the seeded `*.goosepaper.json` files and `addon_config.json` to your own feeds,
    reMarkable folder, and schedule (see "Editing your configuration" below for how to actually
    reach these files). It runs a scheduler (APScheduler, one cron job per enabled newspaper from

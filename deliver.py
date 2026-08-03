@@ -29,6 +29,7 @@ import sys
 from typing import List, Optional
 
 import remarkapy.client as _rc_client
+from remarkapy.exceptions import RemarkableAPIError as _RemarkableAPIError
 
 import config_schema
 
@@ -47,7 +48,36 @@ def _patched_get_root_state(self, refresh=False):
 
 _rc_client.Client.get_root_state = _patched_get_root_state
 
-from goosepaper.auth import auth_client  # noqa: E402
+
+def auth_client():
+    """Replaces goosepaper.auth.auth_client(), which builds its Client with remarkapy's
+    interactive=True default: a missing device token then falls into an interactive input()
+    pairing wizard instead of failing cleanly - harmless on a real terminal, but this container
+    has no stdin, so that's an uncaught EOFError crash (seen in production logs) instead of the
+    graceful "Honk! Authentication failed" every caller here already expects. scheduler.py's own
+    startup check already goes through interactive=False; this makes every other reMarkable auth
+    in the add-on do the same, so a token that goes missing mid-session (not just "never paired
+    at startup") fails that one edition cleanly instead of crashing it.
+    """
+    try:
+        client = _rc_client.Client(refresh_on_init=False, interactive=False)
+        client.refresh_user_token()
+        return client
+    except _RemarkableAPIError as err:
+        logger.error("Honk! reMarkable authentication failed: %s", err)
+        return False
+
+
+import goosepaper.auth as _gp_auth  # noqa: E402
+import goosepaper.upload as _gp_upload  # noqa: E402
+
+# goosepaper.upload.upload() (imported below) resolves auth_client via its own `from .auth
+# import auth_client` binding, independent of this module's - patch both module-level names so
+# every call site (this file's own _cleanup_old_editions, and upload() internally) gets the
+# non-interactive version above instead of goosepaper's original.
+_gp_auth.auth_client = auth_client
+_gp_upload.auth_client = auth_client
+
 from goosepaper.goosepaper import Goosepaper  # noqa: E402
 from goosepaper.storyprovider.comic import DailyComicStoryProvider  # noqa: E402
 from goosepaper.storyprovider.puzzle import PuzzleStoryProvider  # noqa: E402

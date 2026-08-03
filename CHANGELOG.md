@@ -9,6 +9,9 @@ they shipped in.
 - `max_body_text_length` on `"rss"` sources (mirrors the existing `min_body_text_length`): drop
   stories whose extracted body is implausibly long — e.g. a hardware review with a huge photo
   gallery — instead of letting a single outlier balloon a whole edition.
+- `watchdog: true`: after saving a pairing code while the add-on is stopped/errored (the state
+  it's in whenever there's no usable pairing, since 1.2.0), Supervisor now retries starting it
+  automatically instead of requiring a manual restart from the Configuration tab.
 
 ### Changed
 - `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring
@@ -17,6 +20,18 @@ they shipped in.
   itself, upstreamed from this add-on's own wrapper code. No behavior change; only the
   minimum/maximum-body-length safety net and section grouping remain wrapper-level concerns,
   since both depend on this add-on's own config schema.
+- `remarkable_pairing_code`'s schema type is now `password` instead of `str`, so the Configuration
+  tab masks it like any other secret instead of leaving a one-time code sitting there in plain
+  text after it's been entered and saved.
+
+### Fixed
+- `goosepaper.auth.auth_client()` (used for every reMarkable upload and retention cleanup, not
+  just the startup pairing check) built its `Client` with remarkapy's `interactive=True` default —
+  if a device token went missing after startup, that fell into an interactive `input()` pairing
+  wizard, which just raised an uncaught `EOFError` in this container (no stdin) instead of the
+  clean "Honk! Authentication failed" every caller already handles. Seen in production logs on an
+  add-on that had never completed pairing. Now patched to `interactive=False` everywhere, matching
+  what the startup check already guaranteed.
 
 ## [1.2.0]
 
