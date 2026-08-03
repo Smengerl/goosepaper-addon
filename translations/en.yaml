@@ -1,0 +1,10 @@
+configuration:
+  remarkable_pairing_code:
+    name: "reMarkable pairing code"
+    description: >-
+      One-time code that links this add-on to your reMarkable tablet, so it can upload
+      generated newspapers. Get an 8-character code from https://my.remarkable.com/pair/app,
+      paste it here, save, then restart the add-on. Only needed once - the pairing is stored
+      under /data and survives restarts and updates - or again if you switch to a different
+      reMarkable. The add-on refuses to start without a valid pairing; check the Log tab to see
+      whether pairing succeeded.

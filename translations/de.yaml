@@ -1,0 +1,11 @@
+configuration:
+  remarkable_pairing_code:
+    name: "reMarkable Pairing-Code"
+    description: >-
+      Einmaliger Code, der dieses Add-on mit deinem reMarkable-Tablet verknüpft, damit es
+      erzeugte Zeitungen hochladen kann. Hole dir einen 8-stelligen Code unter
+      https://my.remarkable.com/pair/app, trage ihn hier ein, speichere und starte das Add-on
+      danach neu. Nur einmalig nötig - das Pairing wird unter /data gespeichert und übersteht
+      Neustarts und Updates - oder erneut, wenn du auf ein anderes reMarkable wechselst. Ohne
+      gültiges Pairing startet das Add-on nicht; im Reiter "Protokoll" siehst du, ob das Pairing
+      erfolgreich war.

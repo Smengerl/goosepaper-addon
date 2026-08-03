@@ -15,6 +15,9 @@ they shipped in.
   network hiccup at boot) does not block startup, only a genuinely missing/unusable pairing does.
 - New `"comic"` source type: embeds today's XKCD, Calvin and Hobbes, or Garfield strip as an
   image story.
+- `translations/en.yaml` + `de.yaml`: the Configuration tab's `remarkable_pairing_code` field now
+  has a friendly name and explanatory text (what it's for, where to get a code, and that it's
+  only needed once or again after switching reMarkables) instead of just the bare option key.
 
 ### Fixed
 - `config.yaml`'s `map:` used the deprecated `addon_config:rw`; switched to `app_config:rw`,
