@@ -3,12 +3,9 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
-## [1.3.0]
+## [1.4.0]
 
 ### Added
-- `max_body_text_length` on `"rss"` sources (mirrors the existing `min_body_text_length`): drop
-  stories whose extracted body is implausibly long — e.g. a hardware review with a huge photo
-  gallery — instead of letting a single outlier balloon a whole edition.
 - `watchdog: true`: after saving a pairing code while the add-on is stopped/errored (the state
   it's in whenever there's no usable pairing, since 1.2.0), Supervisor now retries starting it
   automatically instead of requiring a manual restart from the Configuration tab.
@@ -17,12 +14,6 @@ they shipped in.
   leaving the old one sitting in Configuration afterward looked reusable when it wasn't.
 
 ### Changed
-- `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring
-  the feed's own title over readability's, cross-source deduplication, and clean PDF bookmark
-  levels) are gone — the same behavior is now native in the `goosepaper-logicpuzzles` fork
-  itself, upstreamed from this add-on's own wrapper code. No behavior change; only the
-  minimum/maximum-body-length safety net and section grouping remain wrapper-level concerns,
-  since both depend on this add-on's own config schema.
 - `remarkable_pairing_code`'s schema type is now `password` instead of `str`, so the Configuration
   tab masks it like any other secret instead of leaving a one-time code sitting there in plain
   text after it's been entered and saved.
@@ -35,6 +26,21 @@ they shipped in.
   clean "Honk! Authentication failed" every caller already handles. Seen in production logs on an
   add-on that had never completed pairing. Now patched to `interactive=False` everywhere, matching
   what the startup check already guaranteed.
+
+## [1.3.0]
+
+### Added
+- `max_body_text_length` on `"rss"` sources (mirrors the existing `min_body_text_length`): drop
+  stories whose extracted body is implausibly long — e.g. a hardware review with a huge photo
+  gallery — instead of letting a single outlier balloon a whole edition.
+
+### Changed
+- `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring
+  the feed's own title over readability's, cross-source deduplication, and clean PDF bookmark
+  levels) are gone — the same behavior is now native in the `goosepaper-logicpuzzles` fork
+  itself, upstreamed from this add-on's own wrapper code. No behavior change; only the
+  minimum/maximum-body-length safety net and section grouping remain wrapper-level concerns,
+  since both depend on this add-on's own config schema.
 
 ## [1.2.0]
 
