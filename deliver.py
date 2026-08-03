@@ -3,36 +3,20 @@
 will eventually be this add-on's own options) plus one `*.goosepaper.json` file per newspaper
 (sections/sources/paper look - the actual content, editable without touching addon options).
 
-Depends on ../goosepaper-fork (a local editable install, see pyproject.toml) instead of the
-PyPI `goosepaper` package - that fork adds a native "puzzle" source type and native
-`content_skip_filters`/`skip_title_patterns` support on `"rss"` sources (see its own deliver.py-free
-goosepaper/storyprovider/rss.py and goosepaper/storyprovider/puzzle.py). Everything below is
-generic, source-agnostic behavior that stays a wrapper concern rather than living in the fork -
-see the plan history for why each item is scoped where it is:
+Depends on the goosepaper-logicpuzzles fork (see pyproject.toml, pinned to its `mainline`
+branch) instead of the PyPI `goosepaper` package. Sections, RSS content/title filtering,
+min/max body-length, feed-title preference, cross-source deduplication, and clean PDF bookmark
+levels all used to be monkeypatches or wrapper classes here; they're now native fork features
+(RSSFeedStoryProvider params, SectionProvider, Goosepaper(deduplicate=...), to_pdf(...)'s
+bookmark-level params) - see the fork's own PRs for the rationale behind each.
 
+What's left as a genuine wrapper concern:
 1. remarkapy reads the account's sync `schemaVersion` from the root manifest and reuses it for
    writes. Accounts still on schema 3 get rejected by the cloud on every write ("Software must be
    updated" / update-required) even though the server accepts schema-4 writes just fine. Until
    upstream remarkapy handles this (https://github.com/j6k4m8/remarkapy), force schema 4.
-2. goosepaper's RSS provider (body_source="article") fetches the full article page with
-   `requests` and trusts `response.encoding`. Per RFC 2616, `requests` defaults undeclared text/*
-   charsets to ISO-8859-1, mangling UTF-8 pages that omit an explicit charset. Fall back to
-   requests' own content-sniffed encoding whenever the header didn't declare one.
-3. readability's `doc.title()` is unreliable on some sites (e.g. it returns just the site name
-   for every Golem article). The RSS feed's own <title> is always accurate; use it always.
-4. `RSSFeedStoryProvider.get_stories()` has no per-entry error handling: one broken link (e.g.
-   Hacker News linking out to a dead or SSL-broken third-party site) raises out of the whole
-   method and drops that source's entire batch for the run. Catch and skip per entry instead.
-5. Cross-source deduplication (goosepaper has a built-in `deduplicate` option on
-   `Goosepaper.get_stories()` that matches identical headline+date, but the upstream CLI never
-   enables it). Force it on.
-6. WeasyPrint's PDF outline is built from every <h1>-<h6> by default, including headings that
-   originate inside a story's own body content. bookmarks.css assigns explicit bookmark-level
-   values (section=1, headline=2, in-body headings=none) for a clean two-level outline.
-
-Per-newspaper/per-section/per-source behavior (sections grouping, the minimum-body-length safety
-net) is config-driven via GoosepaperConfig/generic_filters.py, applied in ConfiguredRSSProvider
-and SectionTaggedProvider below.
+2. Translating this add-on's own config schema (config_schema.py) into fork constructor calls,
+   grouped by section (_build_provider/_build_providers below).
 """
 
 from __future__ import annotations
@@ -47,7 +31,6 @@ from typing import List, Optional
 import remarkapy.client as _rc_client
 
 import config_schema
-import generic_filters
 
 logger = logging.getLogger("goosepaper-addon")
 
@@ -64,63 +47,12 @@ def _patched_get_root_state(self, refresh=False):
 
 _rc_client.Client.get_root_state = _patched_get_root_state
 
-import goosepaper.storyprovider.rss as _rss
-
-_original_story_from_response = _rss._story_from_response
-_original_story_from_entry = _rss._story_from_entry
-
-
-def _patched_story_from_response(entry, response, source, date, fallback_body_html=""):
-    content_type = response.headers.get("content-type", "")
-    if "charset" not in content_type.lower():
-        response.encoding = response.apparent_encoding or "utf-8"
-    story = _original_story_from_response(entry, response, source, date, fallback_body_html)
-    story.headline = entry["title"]
-    return story
-
-
-_rss._story_from_response = _patched_story_from_response
-
-
-def _patched_story_from_entry(entry, source, date, body_source="auto"):
-    try:
-        return _original_story_from_entry(entry, source, date, body_source=body_source)
-    except Exception as err:
-        logger.warning("Honk! Skipping %r: %s", entry.get("link", entry.get("title")), err)
-        return None
-
-
-_rss._story_from_entry = _patched_story_from_entry
-
-import goosepaper.goosepaper as _gp
-
-_original_get_stories = _gp.Goosepaper.get_stories
-
-
-def _patched_get_stories(self, deduplicate: bool = True):
-    return _original_get_stories(self, deduplicate=deduplicate)
-
-
-_gp.Goosepaper.get_stories = _patched_get_stories
-
-import goosepaper.styles as _styles
-
-_original_get_stylesheets = _styles.Style.get_stylesheets
-_BOOKMARKS_CSS_PATH = str(pathlib.Path(__file__).resolve().parent / "bookmarks.css")
-
-
-def _patched_get_stylesheets(self) -> List[str]:
-    return [*_original_get_stylesheets(self), _BOOKMARKS_CSS_PATH]
-
-
-_styles.Style.get_stylesheets = _patched_get_stylesheets
-
-# Import after the monkeypatches above so every code path already sees the patched behavior.
 from goosepaper.auth import auth_client  # noqa: E402
 from goosepaper.goosepaper import Goosepaper  # noqa: E402
 from goosepaper.storyprovider.comic import DailyComicStoryProvider  # noqa: E402
 from goosepaper.storyprovider.puzzle import PuzzleStoryProvider  # noqa: E402
 from goosepaper.storyprovider.rss import RSSFeedStoryProvider  # noqa: E402
+from goosepaper.storyprovider.section import SectionProvider  # noqa: E402
 from goosepaper.storyprovider.storyprovider import StoryProvider  # noqa: E402
 from goosepaper.storyprovider.weather import OpenMeteoWeatherStoryProvider  # noqa: E402
 from goosepaper.storyprovider.wikipedia import (  # noqa: E402
@@ -129,82 +61,42 @@ from goosepaper.storyprovider.wikipedia import (  # noqa: E402
 from goosepaper.upload import upload as goosepaper_upload  # noqa: E402
 
 
-# --- per-source, config-driven post-processing -------------------------------------------------
-
-
-class ConfiguredRSSProvider(StoryProvider):
-    """Wraps the fork's RSSFeedStoryProvider (which now natively applies content_skip_filters/
-    skip_title_patterns) with what's still wrapper-only: section tagging and the minimum-body-
-    length safety net."""
-
-    def __init__(
-        self,
-        source: config_schema.RSSSource,
-        section_title: str,
-        default_min_body_text_length: int,
-    ) -> None:
-        self._min_len = source.min_body_text_length or default_min_body_text_length
-        self._section_title = section_title
-        self._inner = RSSFeedStoryProvider(
-            rss_path=source.url,
-            limit=source.limit,
-            since_days_ago=source.max_age_days,
-            byline=source.byline,
-            body_source=source.body_source,
-            content_skip_filters=[
-                f.model_dump(exclude_none=True) for f in source.content_skip_filters
-            ],
-            skip_title_patterns=source.skip_title_patterns,
-            content_accept_filters=[
-                f.model_dump(exclude_none=True) for f in source.content_accept_filters
-            ],
-            accept_title_patterns=source.accept_title_patterns,
-        )
-
-    def get_stories(self) -> List:
-        kept = []
-        for story in self._inner.get_stories():
-            if generic_filters.visible_text_length(story.body_html) < self._min_len:
-                continue
-            story.section_title = self._section_title
-            kept.append(story)
-        return kept
-
-
-class SectionTaggedProvider(StoryProvider):
-    """Tags every story from a built-in goosepaper provider (Wikipedia, weather, puzzle, ...)
-    with its section - the only per-source-config concern that applies to non-RSS providers too,
-    since they don't scrape arbitrary HTML and so have no clutter to filter or titles to skip.
-
-    `headline_prefix`, if given, is prepended to every returned headline - used for weather,
-    since OpenMeteoWeatherStoryProvider always returns the bare headline "Weather" with no place
-    name (Open-Meteo's API has no reverse-geocoding), so there'd otherwise be no way to tell two
-    weather sections apart.
-    """
-
-    def __init__(self, inner: StoryProvider, section_title: str, headline_prefix: str = "") -> None:
-        self._inner = inner
-        self._section_title = section_title
-        self._headline_prefix = headline_prefix
-
-    def get_stories(self) -> List:
-        stories = self._inner.get_stories()
-        for story in stories:
-            story.section_title = self._section_title
-            if self._headline_prefix:
-                story.headline = f"{self._headline_prefix}: {story.headline}"
-        return stories
+# --- per-source, config-driven provider construction ---------------------------------------------
 
 
 def _build_provider(
     source: config_schema.Source, section_title: str, defaults: config_schema.Defaults
 ) -> StoryProvider:
     if source.type == "rss":
-        return ConfiguredRSSProvider(source, section_title, defaults.min_body_text_length)
+        inner = RSSFeedStoryProvider(
+            rss_path=source.url,
+            limit=source.limit,
+            since_days_ago=source.max_age_days,
+            byline=source.byline,
+            body_source=source.body_source,
+            skip_content_filters=[
+                f.model_dump(exclude_none=True) for f in source.content_skip_filters
+            ],
+            skip_title_patterns=source.skip_title_patterns,
+            # ContentAcceptFilter is CSS-only (no "type" field, see config_schema.py) - the fork's
+            # accept_content_filters entries need one to tell a css narrow-down from a regex gate.
+            accept_content_filters=[
+                {"type": "css", **f.model_dump(exclude_none=True)}
+                for f in source.content_accept_filters
+            ],
+            accept_title_patterns=source.accept_title_patterns,
+            min_body_text_length=source.min_body_text_length or defaults.min_body_text_length,
+            max_body_text_length=source.max_body_text_length,
+            # readability's own title extraction is unreliable on some sites (e.g. it returns
+            # just the site name for every Golem article); the feed's own title is always
+            # accurate, so always prefer it rather than making this a per-source config option.
+            prefer_feed_title=True,
+        )
+        return SectionProvider(inner, section_title)
     if source.type == "wikipedia":
-        return SectionTaggedProvider(WikipediaCurrentEventsStoryProvider(), section_title)
+        return SectionProvider(WikipediaCurrentEventsStoryProvider(), section_title)
     if source.type == "weather":
-        return SectionTaggedProvider(
+        return SectionProvider(
             OpenMeteoWeatherStoryProvider(
                 lat=source.lat,
                 lon=source.lon,
@@ -223,9 +115,9 @@ def _build_provider(
                   "name": source.name}
         if source.puzzle_type == "sudoku":
             kwargs["box_size"] = source.box_size
-        return SectionTaggedProvider(PuzzleStoryProvider(**kwargs), section_title)
+        return SectionProvider(PuzzleStoryProvider(**kwargs), section_title)
     if source.type == "comic":
-        return SectionTaggedProvider(
+        return SectionProvider(
             DailyComicStoryProvider(comic_type=source.comic_type), section_title
         )
     raise ValueError(f"Unknown source type {source.type!r}")
@@ -303,7 +195,7 @@ def _generate_newspaper(
     output_dir: pathlib.Path,
 ) -> pathlib.Path:
     providers = _build_providers(goosepaper_config)
-    paper = Goosepaper(story_providers=providers, title=entry.title)
+    paper = Goosepaper(story_providers=providers, title=entry.title, deduplicate=True)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     edition_name = f"{entry.title} {datetime.date.today().isoformat()}"

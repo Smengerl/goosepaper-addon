@@ -121,6 +121,15 @@ All four fields are applied natively by the fork's
 — this project's own schema (`config_schema.py`) only validates their shape before passing them
 through untouched.
 
+An `"rss"` source can also set `"min_body_text_length"` and/or `"max_body_text_length"` (both
+optional integers, applied after the filters above) to drop stories whose extracted body's
+visible text length falls outside that range. `"min_body_text_length"` catches a failed
+extraction (a near-empty body) — falls back to `defaults.min_body_text_length` (see the example
+config above) when not set per-source. `"max_body_text_length"` catches the opposite: an article
+whose body is implausibly long (e.g. a hardware review with a huge photo gallery), which would
+otherwise balloon a single entry into the bulk of the whole edition — no default, opt in per
+source. Both native to the fork's `RSSFeedStoryProvider` as well.
+
 ## Installation
 
 1. Add `https://github.com/Smengerl/goosepaper-addon` under **Settings → Add-ons → Add-on

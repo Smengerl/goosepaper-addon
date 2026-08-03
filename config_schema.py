@@ -82,6 +82,7 @@ class RSSSource(StrictModel):
     accept_title_patterns: List[str] = Field(default_factory=list)
     content_accept_filters: List[ContentAcceptFilter] = Field(default_factory=list)
     min_body_text_length: Optional[int] = None
+    max_body_text_length: Optional[int] = None
 
 
 class WikipediaSource(StrictModel):

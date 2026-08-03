@@ -3,6 +3,21 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.3.0]
+
+### Added
+- `max_body_text_length` on `"rss"` sources (mirrors the existing `min_body_text_length`): drop
+  stories whose extracted body is implausibly long — e.g. a hardware review with a huge photo
+  gallery — instead of letting a single outlier balloon a whole edition.
+
+### Changed
+- `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring
+  the feed's own title over readability's, cross-source deduplication, and clean PDF bookmark
+  levels) are gone — the same behavior is now native in the `goosepaper-logicpuzzles` fork
+  itself, upstreamed from this add-on's own wrapper code. No behavior change; only the
+  minimum/maximum-body-length safety net and section grouping remain wrapper-level concerns,
+  since both depend on this add-on's own config schema.
+
 ## [1.2.0]
 
 ### Changed
