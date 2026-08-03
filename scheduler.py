@@ -130,6 +130,40 @@ def _run_newspaper(newspaper_id: str) -> None:
         logger.exception("Honk! Scheduled run failed for %r", newspaper_id)
 
 
+def _describe_retention(retention: config_schema.Retention) -> str:
+    if retention.mode == "keep_last_n":
+        return f"keep last {retention.keep_last_n}"
+    return "keep all"
+
+
+def _last_local_edition(title: str, output_dir: pathlib.Path) -> str:
+    matches = sorted(output_dir.glob(f"{title} *.pdf"))
+    return matches[-1].name if matches else "none yet"
+
+
+def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir: pathlib.Path) -> None:
+    """Read-only overview of the current addon_config.json, logged once at startup so 'what's
+    configured, and does it look right' is visible from the Log tab without needing a file editor
+    - see DOCS.md's "Editing your configuration" section for actually changing any of this. The
+    'last local edition' column reads output_dir's filenames rather than tracking its own state,
+    since deliver.py already keeps exactly the latest PDF per newspaper there (see
+    _cleanup_local_editions) - no separate state file to keep in sync.
+    """
+    logger.info("Honk! Configured newspapers (%d):", len(addon_config.newspapers))
+    for entry in addon_config.newspapers:
+        status = "enabled" if entry.enabled else "disabled"
+        logger.info(
+            "Honk!   - %s %r - %s, cron %r, folder %r, retention: %s, last local edition: %s",
+            entry.id,
+            entry.title,
+            status,
+            entry.schedule,
+            entry.remarkable_folder,
+            _describe_retention(entry.retention),
+            _last_local_edition(entry.title, output_dir),
+        )
+
+
 def main() -> int:
     _seed_default_config()
     if not _check_and_complete_remarkable_pairing():
@@ -140,6 +174,7 @@ def main() -> int:
     except Exception as err:
         logger.error("Honk! Could not load %s: %s", ADDON_CONFIG_PATH, err)
         return 1
+    _log_newspaper_overview(addon_config, pathlib.Path(OUTPUT_DIR))
 
     scheduler = BlockingScheduler()
 

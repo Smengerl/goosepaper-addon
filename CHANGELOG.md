@@ -18,6 +18,11 @@ they shipped in.
 - `translations/en.yaml` + `de.yaml`: the Configuration tab's `remarkable_pairing_code` field now
   has a friendly name and explanatory text (what it's for, where to get a code, and that it's
   only needed once or again after switching reMarkables) instead of just the bare option key.
+- Startup "Configured newspapers" log summary: one line per newspaper (id, title, enabled state,
+  cron schedule, reMarkable folder, retention policy, most recent local PDF) under the Log tab —
+  a read-only overview of `addon_config.json` without needing a file editor. DOCS.md's new
+  "Editing your configuration" section covers how to actually reach/edit the config files
+  (Studio Code Server or Samba — there's no in-app editor on the Configuration tab).
 
 ### Fixed
 - `config.yaml`'s `map:` used the deprecated `addon_config:rw`; switched to `app_config:rw`,
