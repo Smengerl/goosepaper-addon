@@ -3,18 +3,17 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
-## [1.1.0]
+## [1.2.0]
+
+### Changed
+- Startup pairing check now **refuses to start** if there's no usable reMarkable pairing at all
+  (no token, and no working `remarkable_pairing_code` either), instead of only warning and then
+  scheduling newspapers that could only fail on delivery — previously it logged a warning but
+  still set up cron jobs and kept running. A transient verification error against an
+  already-paired token (e.g. a network hiccup at boot) still does not block startup, only a
+  genuinely missing/unusable pairing does.
 
 ### Added
-- GUI-based reMarkable pairing: enter an 8-character pairing code directly under the add-on's
-  Configuration tab (`remarkable_pairing_code`) instead of needing shell/SSH access.
-- Startup pairing check: verifies (with a real API call, not just "does a token file exist")
-  whether reMarkable pairing works every time the add-on starts. If there's no usable pairing at
-  all, the add-on now refuses to start rather than silently scheduling newspapers that could only
-  fail on delivery — a transient verification error against an already-paired token (e.g. a
-  network hiccup at boot) does not block startup, only a genuinely missing/unusable pairing does.
-- New `"comic"` source type: embeds today's XKCD, Calvin and Hobbes, or Garfield strip as an
-  image story.
 - `translations/en.yaml` + `de.yaml`: the Configuration tab's `remarkable_pairing_code` field now
   has a friendly name and explanatory text (what it's for, where to get a code, and that it's
   only needed once or again after switching reMarkables) instead of just the bare option key.
@@ -28,6 +27,18 @@ they shipped in.
 - `config.yaml`'s `map:` used the deprecated `addon_config:rw`; switched to `app_config:rw`,
   matching Supervisor's in-progress "add-on → app" rename (the old value still works today but
   logs a "legacy map type" warning on every load).
+
+## [1.1.0]
+
+### Added
+- GUI-based reMarkable pairing: enter an 8-character pairing code directly under the add-on's
+  Configuration tab (`remarkable_pairing_code`) instead of needing shell/SSH access.
+- Startup pairing check: verifies (with a real API call, not just "does a token file exist")
+  whether reMarkable pairing works every time the add-on starts, and logs a clear warning if it's
+  missing or invalid — newspaper generation still worked without it at this point, only
+  reMarkable delivery needed it (tightened to a hard startup failure in 1.2.0).
+- New `"comic"` source type: embeds today's XKCD, Calvin and Hobbes, or Garfield strip as an
+  image story.
 
 ## [1.0.0]
 
