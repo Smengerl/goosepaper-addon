@@ -9,6 +9,7 @@ startup: application
 boot: auto
 init: false
 watchdog: true
+hassio_api: true
 map:
   - app_config:rw
 options:

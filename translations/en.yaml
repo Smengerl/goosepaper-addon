@@ -7,4 +7,5 @@ configuration:
       paste it here, save, then restart the add-on. Only needed once - the pairing is stored
       under /data and survives restarts and updates - or again if you switch to a different
       reMarkable. The add-on refuses to start without a valid pairing; check the Log tab to see
-      whether pairing succeeded.
+      whether pairing succeeded. This field clears itself automatically once the code is
+      successfully used - it's single-use anyway.

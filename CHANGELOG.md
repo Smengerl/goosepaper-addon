@@ -12,6 +12,9 @@ they shipped in.
 - `watchdog: true`: after saving a pairing code while the add-on is stopped/errored (the state
   it's in whenever there's no usable pairing, since 1.2.0), Supervisor now retries starting it
   automatically instead of requiring a manual restart from the Configuration tab.
+- `hassio_api: true`: once a configured `remarkable_pairing_code` is successfully redeemed, the
+  add-on now clears it back to empty via Supervisor's own API — a pairing code is single-use, so
+  leaving the old one sitting in Configuration afterward looked reusable when it wasn't.
 
 ### Changed
 - `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring

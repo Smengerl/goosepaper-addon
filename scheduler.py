@@ -14,6 +14,7 @@ import pathlib
 import shutil
 import signal
 
+import httpx
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from remarkapy.client import Client
@@ -60,6 +61,36 @@ def _read_pairing_code_option() -> str:
     except (OSError, json.JSONDecodeError):
         return ""
     return (options.get("remarkable_pairing_code") or "").strip()
+
+
+def _clear_pairing_code_option() -> None:
+    """Best-effort cleanup after a pairing code is successfully redeemed: reMarkable invalidates
+    a pairing code the instant it's used, so leaving the old one sitting in Configuration
+    afterward is misleading - it looks reusable but isn't. Needs `hassio_api: true` (see
+    config.yaml) to call Supervisor's own API and rewrite this add-on's own options. Failure here
+    is only ever logged, never fatal - pairing itself already succeeded by the time this runs.
+    """
+    token = os.environ.get("SUPERVISOR_TOKEN")
+    if not token:
+        return
+    try:
+        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not options.get("remarkable_pairing_code"):
+        return
+    options["remarkable_pairing_code"] = ""
+    try:
+        response = httpx.post(
+            "http://supervisor/addons/self/options",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"options": options},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        logger.info("Honk! Cleared the one-time reMarkable pairing code from the add-on options.")
+    except Exception as err:
+        logger.warning("Honk! Could not clear the used pairing code option: %s", err)
 
 
 def _check_and_complete_remarkable_pairing() -> bool:
@@ -111,6 +142,7 @@ def _check_and_complete_remarkable_pairing() -> bool:
     try:
         client.register_device(code)
         logger.info("Honk! reMarkable pairing complete via the configured pairing code.")
+        _clear_pairing_code_option()
         return True
     except Exception as err:
         logger.error(

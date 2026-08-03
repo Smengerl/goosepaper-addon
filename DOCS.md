@@ -145,7 +145,10 @@ source. Both native to the fork's `RSSFeedStoryProvider` as well.
    - **GUI (recommended)**: get an 8-character code from
      https://my.remarkable.com/pair/app, then enter it under **Settings → Add-ons → Goosepaper →
      Configuration** as `remarkable_pairing_code` and save (the field is masked, like any other
-     secret). The add-on picks it up on its next (re)start — no shell access needed.
+     secret). The add-on picks it up on its next (re)start — no shell access needed. Once the
+     code is successfully redeemed, the add-on clears it back to empty on its own (a pairing code
+     is single-use, so there's nothing left to reuse it for) — don't be surprised to find the
+     field blank again afterward.
    - **Shell**: open a shell in the running add-on (or `docker exec` if run standalone) and run
      `remarkapy init`, which asks for the same kind of code interactively.
 
