@@ -9,3 +9,13 @@ configuration:
       reMarkable. The add-on refuses to start without a valid pairing; check the Log tab to see
       whether pairing succeeded. This field clears itself automatically once the code is
       successfully used - it's single-use anyway.
+  generation_log_level:
+    name: "Generation log level"
+    description: >-
+      Minimum log level for everything involved in actually generating a newspaper - PDF/font
+      rendering, HTTP requests, the scheduler library - shown under the Log tab. Defaults to
+      "warning" to cut the noise: a single edition can otherwise produce dozens of low-level
+      lines that bury this add-on's own messages (schedule triggers, the configured-newspapers
+      overview, pairing status - all prefixed "Honk!"), which always show regardless of this
+      setting. Set it to "debug" or "info" temporarily when you actually need to see what's
+      happening inside generation, e.g. while debugging a broken RSS feed.

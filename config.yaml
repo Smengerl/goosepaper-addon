@@ -14,5 +14,7 @@ map:
   - app_config:rw
 options:
   remarkable_pairing_code: ""
+  generation_log_level: "warning"
 schema:
   remarkable_pairing_code: "password?"
+  generation_log_level: "list(debug|info|warning|error|critical)?"

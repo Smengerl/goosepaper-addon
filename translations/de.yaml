@@ -10,3 +10,14 @@ configuration:
       gültiges Pairing startet das Add-on nicht; im Reiter "Protokoll" siehst du, ob das Pairing
       erfolgreich war. Nach erfolgreicher Verwendung wird das Feld automatisch geleert - der Code
       ist ohnehin nur einmal gültig.
+  generation_log_level:
+    name: "Log-Level der Generierung"
+    description: >-
+      Minimales Log-Level für alles, was mit der eigentlichen Zeitungserzeugung zu tun hat - PDF-
+      /Font-Rendering, HTTP-Requests, die Scheduler-Bibliothek - im Reiter "Protokoll". Standard
+      ist "warning", um das Rauschen zu reduzieren: eine einzelne Ausgabe kann sonst Dutzende
+      Zeilen auf niedrigem Level erzeugen, die die eigenen Meldungen dieses Add-ons (Auslösen
+      eines Zeitplans, die Übersicht der konfigurierten Zeitungen, Pairing-Status - alle mit
+      "Honk!" markiert) darunter begraben; diese werden unabhängig von dieser Einstellung immer
+      angezeigt. Setze es vorübergehend auf "debug" oder "info", wenn du tatsächlich sehen musst,
+      was während der Generierung passiert, z.B. beim Debuggen eines kaputten RSS-Feeds.

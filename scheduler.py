@@ -23,13 +23,48 @@ from remarkapy.exceptions import ConfigNotFoundError
 import config_schema
 import deliver
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("goosepaper-addon")
 
 ADDON_CONFIG_PATH = os.environ.get("ADDON_CONFIG", "/config/addon_config.json")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/data/output")
 EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent / "examples"
 OPTIONS_PATH = pathlib.Path("/data/options.json")
+
+_LOG_LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
+
+
+def _read_generation_log_level_option() -> int:
+    try:
+        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        options = {}
+    raw = str(options.get("generation_log_level") or "warning").strip().lower()
+    return _LOG_LEVELS.get(raw, logging.WARNING)
+
+
+def _configure_logging() -> None:
+    """A goosepaper edition pulls in WeasyPrint (which logs every fontTools subsetting step),
+    httpx (which logs every HTTP request), APScheduler's own job-lifecycle chatter, and more -
+    all at INFO, all sharing the root logger with this add-on's own "Honk!" messages. Left alone,
+    that noise buries the messages that actually matter (a schedule firing, the configured-
+    newspapers overview, pairing status) under dozens of "glyf pruned"-style lines per edition.
+
+    generation_log_level (an add-on option, see config.yaml) sets the root logger's level, so it
+    controls everything BUT this add-on's own logger - that's pinned to INFO immediately after,
+    regardless of the option, so turning generation noise down can never hide an add-on-level
+    message. Set it to "debug" temporarily when actually troubleshooting generation itself.
+    """
+    logging.basicConfig(
+        level=_read_generation_log_level_option(),
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
+    logger.setLevel(logging.INFO)
 
 
 def _seed_default_config() -> None:
@@ -158,6 +193,7 @@ def _run_newspaper(newspaper_id: str) -> None:
     logger.info("Honk! Triggering scheduled generation for %r", newspaper_id)
     try:
         deliver.run(ADDON_CONFIG_PATH, True, newspaper_id, OUTPUT_DIR)
+        logger.info("Honk! Finished scheduled generation for %r", newspaper_id)
     except Exception:
         logger.exception("Honk! Scheduled run failed for %r", newspaper_id)
 
@@ -173,6 +209,17 @@ def _last_local_edition(title: str, output_dir: pathlib.Path) -> str:
     return matches[-1].name if matches else "none yet"
 
 
+def _resolve_goosepaper_config_path(entry: config_schema.AddonNewspaperEntry) -> pathlib.Path:
+    """Mirrors deliver.py's own resolution of entry.goosepaper_config (relative to
+    addon_config.json's own directory unless already absolute), so the overview log below points
+    at the exact file deliver.py will actually read - not just the raw, possibly-relative string
+    from addon_config.json."""
+    config_path = pathlib.Path(entry.goosepaper_config)
+    if config_path.is_absolute():
+        return config_path
+    return pathlib.Path(ADDON_CONFIG_PATH).resolve().parent / config_path
+
+
 def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir: pathlib.Path) -> None:
     """Read-only overview of the current addon_config.json, logged once at startup so 'what's
     configured, and does it look right' is visible from the Log tab without needing a file editor
@@ -181,22 +228,33 @@ def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir:
     since deliver.py already keeps exactly the latest PDF per newspaper there (see
     _cleanup_local_editions) - no separate state file to keep in sync.
     """
-    logger.info("Honk! Configured newspapers (%d):", len(addon_config.newspapers))
+    logger.info("Honk! Configured newspapers (%d), read from %s:", len(addon_config.newspapers), ADDON_CONFIG_PATH)
     for entry in addon_config.newspapers:
         status = "enabled" if entry.enabled else "disabled"
         logger.info(
-            "Honk!   - %s %r - %s, cron %r, folder %r, retention: %s, last local edition: %s",
+            "Honk!   - %s %r - %s, cron %r, config %s, folder %r, retention: %s, "
+            "last local edition: %s",
             entry.id,
             entry.title,
             status,
             entry.schedule,
+            _resolve_goosepaper_config_path(entry),
             entry.remarkable_folder,
             _describe_retention(entry.retention),
             _last_local_edition(entry.title, output_dir),
         )
+    logger.info(
+        "Honk! Note: each newspaper's own *.goosepaper.json (the 'config' column above) is "
+        "reloaded fresh on every scheduled run, so editing sections/sources/paper look takes "
+        "effect immediately, no restart needed. Changing %s itself - schedule, id, enabled, "
+        "adding/removing a newspaper - needs an add-on restart to take effect, since the job "
+        "list above is only built once at startup.",
+        ADDON_CONFIG_PATH,
+    )
 
 
 def main() -> int:
+    _configure_logging()
     _seed_default_config()
     if not _check_and_complete_remarkable_pairing():
         return 1

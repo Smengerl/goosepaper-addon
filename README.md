@@ -20,6 +20,15 @@ kids' edition — each with its own schedule, sections, and reMarkable folder.
 On first install, the add-on seeds itself with working example newspapers, ready to edit into
 your own — you'll just need to pair a reMarkable before the add-on will start.
 
+## Installation
+
+[![Open your Home Assistant instance and show the add-on store with this repository pre-filled.](https://my.home-assistant.io/badges/supervisor_store.svg)](https://my.home-assistant.io/redirect/supervisor_store/?repository_url=https%3A%2F%2Fgithub.com%2FSmengerl%2Fgoosepaper-addon)
+
+Or manually: **Settings → Add-ons → Add-on Store → ⋮ → Repositories**, add
+`https://github.com/Smengerl/goosepaper-addon`, then install **Goosepaper** from the store.
+
+See [DOCS.md](DOCS.md) for pairing your reMarkable and configuring newspapers after install.
+
 **Full documentation** — configuration format, installation, and day-to-day usage — is in
 [DOCS.md](DOCS.md), shown under this add-on's own Documentation tab in Home Assistant. Built on
 [goosepaper-logicpuzzles](https://github.com/Smengerl/goosepaper-logicpuzzles), a public fork of

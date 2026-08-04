@@ -172,8 +172,9 @@ Two kinds of file matter day to day, both under `/config` (`/app_configs/goosepa
 host — see Installation above): `addon_config.json` (which newspapers exist, their schedule,
 reMarkable folder, retention) and each newspaper's own `*.goosepaper.json` (its sections,
 sources, paper look). There's no in-app editor for these on the Configuration tab — Supervisor's
-Options UI only renders the schema fields under `options:` in `config.yaml` (currently just
-`remarkable_pairing_code`), nothing file-based. Reach the files instead with another add-on:
+Options UI only renders the schema fields under `options:` in `config.yaml` (currently
+`remarkable_pairing_code` and `generation_log_level`), nothing file-based. Reach the files
+instead with another add-on:
 
 - **Studio Code Server** (Community add-on) — mounts every add-on's config folder automatically,
   no setup needed. Once installed, `goosepaper`'s files just show up in its file tree alongside
@@ -189,13 +190,18 @@ configured without opening either add-on, see "Configured newspapers" next.
 ## Configured newspapers
 
 Every start, the add-on logs a one-line summary per newspaper — id, title, enabled/disabled,
-cron schedule, reMarkable folder, retention policy, and the most recently generated local PDF (if
-any) — visible under the **Protokoll**/Log tab:
+cron schedule, the resolved path to its `*.goosepaper.json`, reMarkable folder, retention policy,
+and the most recently generated local PDF (if any) — visible under the **Protokoll**/Log tab:
 
 ```
-Honk! Configured newspapers (3):
-Honk!   - tagesgoose 'Tagesgoose' - enabled, cron '0 6 * * *', folder 'Tagesgoose', retention: keep last 7, last local edition: Tagesgoose 2026-08-03.pdf
-Honk!   - julian 'Julians Zeitung' - enabled, cron '0 18 * * 0', folder 'Julians Zeitung', retention: keep last 4, last local edition: Julians Zeitung 2026-08-03.pdf
+Honk! Configured newspapers (2), read from /config/addon_config.json:
+Honk!   - tagesgoose 'Tagesgoose' - enabled, cron '0 6 * * *', config /config/tagesgoose.goosepaper.json, folder 'Tagesgoose', retention: keep last 7, last local edition: Tagesgoose 2026-08-03.pdf
+Honk!   - julian 'Julians Zeitung' - enabled, cron '0 18 * * 0', config /config/julian.goosepaper.json, folder 'Julians Zeitung', retention: keep last 4, last local edition: Julians Zeitung 2026-08-03.pdf
+Honk! Note: each newspaper's own *.goosepaper.json (the 'config' column above) is reloaded fresh
+on every scheduled run, so editing sections/sources/paper look takes effect immediately, no
+restart needed. Changing /config/addon_config.json itself - schedule, id, enabled,
+adding/removing a newspaper - needs an add-on restart to take effect, since the job list above is
+only built once at startup.
 ```
 
 This is read-only and reflects `addon_config.json` only (not each newspaper's sections/sources)
@@ -213,4 +219,12 @@ retention settings, so it stays inspectable without needing reMarkable access.
 
 The add-on logs to stdout/stderr (visible under the add-on's **Log** tab in HA), one line per
 generation start, per delivered edition, per retention deletion, and per skipped/failed RSS
-entry — each prefixed `Honk!`.
+entry — each prefixed `Honk!`. Messages with that prefix always show, regardless of the setting
+below — they're this add-on's own, not the underlying generation libraries'.
+
+A single edition also pulls in WeasyPrint (PDF/font rendering), httpx (every HTTP request), and
+the scheduler library, all of which log their own step-by-step detail at `info` by default —
+enough to bury the `Honk!` lines under dozens of unrelated ones per run. **`generation_log_level`**
+(Settings → Add-ons → Goosepaper → Configuration) sets the minimum level for that underlying
+noise; it defaults to `warning` to keep the log readable. Set it to `debug` or `info` temporarily
+when you actually need that detail, e.g. tracking down why a specific RSS entry got skipped.

@@ -12,6 +12,21 @@ they shipped in.
 - `hassio_api: true`: once a configured `remarkable_pairing_code` is successfully redeemed, the
   add-on now clears it back to empty via Supervisor's own API — a pairing code is single-use, so
   leaving the old one sitting in Configuration afterward looked reusable when it wasn't.
+- `generation_log_level` option: sets the minimum log level for everything involved in actually
+  generating an edition (WeasyPrint/font rendering, httpx's per-request logging, the scheduler
+  library) — defaults to `warning`, since that output was burying this add-on's own `Honk!`
+  messages under dozens of unrelated lines per edition. Those messages always show regardless of
+  this setting, since they're on their own logger, pinned to `info` independent of the option.
+- The startup "Configured newspapers" log now also shows each newspaper's resolved
+  `*.goosepaper.json` path, and a note clarifying that file is reloaded fresh on every scheduled
+  run (no restart needed to edit it) while `addon_config.json` itself needs a restart to pick up
+  schedule/id/enabled changes.
+- `_run_newspaper` now logs a "Finished scheduled generation" line on completion, not just on
+  trigger/failure — a clear per-run end marker now that the underlying generation libraries'
+  own completion chatter is filtered out by default.
+- README.md now has an actual Installation section: a "My Home Assistant" one-click badge that
+  opens the add-on store with this repository pre-filled, plus the manual
+  Settings → Add-ons → Add-on Store → Repositories steps as a fallback.
 
 ### Changed
 - `remarkable_pairing_code`'s schema type is now `password` instead of `str`, so the Configuration
