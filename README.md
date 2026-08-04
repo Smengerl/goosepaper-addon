@@ -1,7 +1,8 @@
 # Goosepaper
 
-Generates a personalized newspaper PDF and delivers it to your reMarkable tablet, on whatever
-schedule you set — a fresh edition waiting for you every morning, no phone required.
+A **Home Assistant add-on** that generates a personalized newspaper PDF and delivers it to your
+reMarkable tablet, on whatever schedule you set — a fresh edition waiting for you every morning,
+no phone required.
 
 Pull in what you actually want to read:
 

@@ -6,6 +6,15 @@ they shipped in.
 ## [1.4.0]
 
 ### Added
+- `LICENSE` (Apache License 2.0) — matches the whole dependency chain (both
+  `goosepaper-logicpuzzles` and `remarkapy` are already Apache-2.0), also added to
+  `pyproject.toml`'s `license` field.
+- `icon.png`/`logo.png` — the "newspaper" symbol from Google's Material Symbols (Apache-2.0),
+  recolored; the add-on store previously showed a generic default icon. See DEVELOPMENT.md's
+  "Assets" section for attribution.
+- `CONTRIBUTING.md`, matching the maintainer's usual template across their other repos.
+- README.md now states up front that this is a Home Assistant add-on, rather than only implying
+  it later in the Installation section.
 - Reworked the seeded example newspapers into three more realistic, distinct examples instead of
   a single generic "Daily News": **World News** (daily - BBC Politics/Business, CNBC, Garfield,
   Wikipedia, Berlin weather), **Tech Weekly** (weekly - The Verge/Ars Technica/TechCrunch/Wired/

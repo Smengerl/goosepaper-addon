@@ -3,6 +3,7 @@ name = "goosepaper-addon"
 version = "0.1.0"
 description = "Generates and delivers personalized reMarkable newspapers from RSS feeds, built on goosepaper-logicpuzzles"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.12"
 dependencies = [
     "apscheduler>=3.11.3",

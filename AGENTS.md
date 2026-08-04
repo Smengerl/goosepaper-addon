@@ -41,12 +41,31 @@ non-obvious steps; skipping any of them leads to "I pushed but nothing changed" 
    `version_latest` (what the store has) - they should match once the update has actually
    completed and the add-on has restarted.
 
+## Versioning and git tags
+
+`config.yaml`'s `version` and the repo's git tags track two different things - Supervisor's
+update mechanism (see "Deploying a change" above) only cares about the former, but a git tag is
+what makes a version discoverable as a real release (GitHub's Releases page, anyone pinning a
+specific commit, etc.). Keep them in sync at the **major.minor** level, but not on every single
+bump:
+
+- **Major/minor bump** (`1.4.0` → `1.5.0`, or `1.4.0` → `2.0.0`): push a matching git tag
+  (`v1.5.0`) once the bump lands and is confirmed running - see "Deploying a change" above. This
+  is what a git tag is *for* here: marking an actual release.
+- **Patch-only bump** (`1.4.0` → `1.4.1`) for small/inconsequential fixes: bump `config.yaml` so
+  Supervisor offers the update, but don't cut a new git tag for it - the existing `v1.4.0` tag
+  stays the reference point for that minor line until the next major/minor bump.
+
+This keeps tags meaningful (one per real release, not one per tiny fix) while Supervisor still
+sees every change meant to reach the add-on, patch-level ones included.
+
 ## Known nits (not blocking, but worth fixing opportunistically)
 
-- No prebuilt image (see `DEVELOPMENT.md`'s Roadmap section: a GitHub Actions workflow using
-  `home-assistant/builder`, pushing to a registry, is the intended fix for the slow-build pain
-  described above). Worth prioritizing given how much friction the on-device build causes for
-  routine iteration.
+- No prebuilt image, `aarch64`-only (see `DEVELOPMENT.md`'s Roadmap section: a GitHub Actions
+  workflow using `home-assistant/builder`, pushing multi-arch images to a registry, is the
+  intended fix for both the slow-build pain described above and the amd64/armv7 install gap).
+  Deliberately deferred past v1 - real CI/build-pipeline work, and the on-device build works
+  correctly today for the one arch the maintainer actually runs.
 
 ## Supervisor terminology: "addon" vs. "app"
 

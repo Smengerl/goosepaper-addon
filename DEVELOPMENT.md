@@ -3,6 +3,13 @@
 This is where the build-from-source, local-testing, and roadmap notes live — not in
 `README.md`, since Home Assistant shows that file verbatim to end users in the Add-on Store.
 
+## Assets
+
+`icon.png`/`logo.png` are the "newspaper" symbol from Google's
+[Material Symbols](https://github.com/google/material-design-icons) (`symbols/web/newspaper`),
+licensed [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE)
+— same license as this repo — recolored onto a solid background, no other modifications.
+
 ## Running locally (no Docker)
 
 ```bash
@@ -55,13 +62,17 @@ fork changes, run `uv lock` locally and commit the updated `uv.lock` (see `AGENT
 See `AGENTS.md`'s "Deploying a change to the real add-on" section for the full checklist
 (version bumps, Supervisor's store-cache behavior, expected build times on constrained hardware).
 
-## Roadmap
+## Roadmap (post-v1 — deliberately deferred, not blocking an initial release)
 
-- **Build strategy**: currently ships as a Supervisor build — `config.yaml` has no `image:`
-  field, so HA Supervisor builds the image on-device from this repo's `Dockerfile` on install.
-  Verified working end-to-end on a real HA Green, but the build takes several minutes on that
-  hardware. **TODO**: add a GitHub Actions workflow (using the official
+- **Multi-arch + prebuilt image**: currently ships as a Supervisor build, `aarch64`-only —
+  `config.yaml` has no `image:` field, so HA Supervisor builds the image on-device from this
+  repo's `Dockerfile` on install. Verified working end-to-end on a real HA Green, but the build
+  takes several minutes on that hardware, and there's no way for an amd64/armv7 user to install
+  this at all today. **TODO**: add a GitHub Actions workflow (using the official
   [`home-assistant/builder`](https://github.com/home-assistant/builder) action) to build and push
-  multi-arch images to a registry (e.g. `ghcr.io`) on each version bump, then add the matching
-  `image:` field to `config.yaml`, so Supervisor pulls a prebuilt image instead of compiling
-  WeasyPrint/Pango from source on every install/update.
+  multi-arch images (at least `aarch64` + `amd64`) to a registry (e.g. `ghcr.io`) on each
+  major/minor version bump, then add the matching `image:` field to `config.yaml`, so Supervisor
+  pulls a prebuilt image instead of compiling WeasyPrint/Pango from source on every
+  install/update. Deliberately bundled as one item and pushed past v1: it's a real chunk of
+  CI/build-pipeline work on its own, and the on-device build - while slow - works correctly today
+  for the one architecture the maintainer actually runs.
