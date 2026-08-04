@@ -40,10 +40,16 @@ RUN uv sync --no-dev --frozen
 
 # HOME controls where remarkapy stores its reMarkable auth token (~/.rmapi by default) - pointed
 # at /data so pairing (see README: `remarkapy init`) only has to happen once, on the host volume,
-# not on every container recreation.
+# not on every container recreation. PYTHONUNBUFFERED - stdout is block-buffered, not line-
+# buffered, once it's piped rather than a TTY (i.e. always, under Docker) - without this, print()
+# calls (the goosepaper dependency's own delivery messages, e.g. "Honk! Upload successful!" -
+# logging's own StreamHandler already flushes per record, so this is only about print()) can sit
+# in the buffer for hours and surface at a completely unrelated point in the log stream, e.g. at
+# the next restart - looking like they just happened when they're actually from hours earlier.
 ENV HOME=/data \
     ADDON_CONFIG=/config/addon_config.json \
     OUTPUT_DIR=/data/output \
+    PYTHONUNBUFFERED=1 \
     PATH="/build/goosepaper-addon/.venv/bin:${PATH}"
 
 VOLUME ["/config", "/data"]

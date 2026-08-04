@@ -41,6 +41,13 @@ they shipped in.
   clean "Honk! Authentication failed" every caller already handles. Seen in production logs on an
   add-on that had never completed pairing. Now patched to `interactive=False` everywhere, matching
   what the startup check already guaranteed.
+- `PYTHONUNBUFFERED=1`: the `goosepaper` dependency's own delivery messages ("Honk! Upload
+  successful!" etc.) use `print()`, not `logging` - `logging`'s `StreamHandler` flushes after
+  every record, but plain `print()`s stdout is block-buffered (not line-buffered) once it's piped
+  rather than a TTY, which is always true under Docker. Without this, those messages could sit in
+  the buffer for hours and only surface at the next restart - looking like they'd just happened
+  when they were actually from a run hours earlier. Verified empirically: redirected stdout stays
+  empty ~150ms after a `print()` without this set, appears immediately with it.
 
 ## [1.3.0]
 
