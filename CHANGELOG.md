@@ -6,9 +6,6 @@ they shipped in.
 ## [1.4.0]
 
 ### Added
-- `watchdog: true`: after saving a pairing code while the add-on is stopped/errored (the state
-  it's in whenever there's no usable pairing, since 1.2.0), Supervisor now retries starting it
-  automatically instead of requiring a manual restart from the Configuration tab.
 - `hassio_api: true`: once a configured `remarkable_pairing_code` is successfully redeemed, the
   add-on now clears it back to empty via Supervisor's own API — a pairing code is single-use, so
   leaving the old one sitting in Configuration afterward looked reusable when it wasn't.
@@ -48,6 +45,15 @@ they shipped in.
   the buffer for hours and only surface at the next restart - looking like they'd just happened
   when they were actually from a run hours earlier. Verified empirically: redirected stdout stays
   empty ~150ms after a `print()` without this set, appears immediately with it.
+- `watchdog: true` (briefly added, now removed) turned out to use the wrong type - Supervisor's
+  actual schema wants a URL/port template (`"tcp://[HOST]:[PORT]"` etc.) to actively health-check,
+  not a boolean "restart on exit" toggle. Broke `config.yaml` parsing entirely - confirmed via
+  Supervisor's own logs (`Can't read .../config.yaml: expected string or buffer for dictionary
+  value @ data['watchdog']. Got True`) - which made every add-on in this repository disappear
+  from the store (not just show stale) for as long as it was live. Removed outright rather than
+  given a real target: this add-on has no listening port (headless scheduler, no `network`/
+  `ingress`/`webui`), so there's nothing valid to health-check in the first place - saving a
+  pairing code while the add-on is stopped needs a manual restart again, same as before 1.2.0.
 
 ## [1.3.0]
 

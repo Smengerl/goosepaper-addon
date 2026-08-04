@@ -156,9 +156,9 @@ source. Both native to the fork's `RSSFeedStoryProvider` as well.
    that — pairing survives restarts and updates. The add-on checks pairing on every start and
    refuses to start if it's missing or no longer valid (see Logs below), rather than schedule
    newspapers that could only fail on delivery. If it's currently stopped for exactly that reason,
-   saving a working pairing code is enough on its own — Supervisor's watchdog retries starting it
-   automatically, no manual restart needed. A manual (re)start only matters if the add-on is
-   otherwise running fine and you're just changing the code (e.g. re-pairing to a new tablet).
+   saving a working pairing code alone doesn't bring it back — start it manually afterward (a
+   headless add-on like this one has no listening port for Supervisor's watchdog to health-check,
+   so that can't restart it automatically).
 4. Edit the seeded `*.goosepaper.json` files and `addon_config.json` to your own feeds,
    reMarkable folder, and schedule (see "Editing your configuration" below for how to actually
    reach these files). It runs a scheduler (APScheduler, one cron job per enabled newspaper from
