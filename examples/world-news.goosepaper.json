@@ -11,6 +11,12 @@
   },
   "sections": [
     {
+      "title": "Comic",
+      "sources": [
+        { "type": "comic", "comic_type": "garfield" }
+      ]
+    },
+    {
       "title": "Politics",
       "sources": [
         {
@@ -46,12 +52,6 @@
             { "type": "css", "selector": "[data-module='mps-slot']" }
           ]
         }
-      ]
-    },
-    {
-      "title": "Comic",
-      "sources": [
-        { "type": "comic", "comic_type": "garfield" }
       ]
     },
     {

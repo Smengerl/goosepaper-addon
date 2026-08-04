@@ -11,6 +11,12 @@
   },
   "sections": [
     {
+      "title": "Comic",
+      "sources": [
+        { "type": "comic", "comic_type": "xkcd" }
+      ]
+    },
+    {
       "title": "Tech",
       "sources": [
         {
@@ -109,12 +115,6 @@
           "byline": "none",
           "body_source": "article"
         }
-      ]
-    },
-    {
-      "title": "Comic",
-      "sources": [
-        { "type": "comic", "comic_type": "xkcd" }
       ]
     }
   ]
