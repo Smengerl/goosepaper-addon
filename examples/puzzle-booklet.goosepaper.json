@@ -17,9 +17,27 @@
       ]
     },
     {
+      "title": "Binoxxo Easy",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "binoxxo", "difficulty": "easy", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Futoshiki Easy",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "futoshiki", "difficulty": "easy", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
       "title": "Kakuro Easy",
       "sources": [
         { "type": "puzzle", "puzzle_type": "kakuro", "difficulty": "easy", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Shikaku Easy",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "shikaku", "difficulty": "easy", "count": 2, "explanation": "footer" }
       ]
     },
     {
@@ -29,15 +47,57 @@
       ]
     },
     {
+      "title": "Binoxxo Medium",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "binoxxo", "difficulty": "medium", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Futoshiki Medium",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "futoshiki", "difficulty": "medium", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Kakuro Medium",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "kakuro", "difficulty": "medium", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
       "title": "Shikaku Medium",
       "sources": [
         { "type": "puzzle", "puzzle_type": "shikaku", "difficulty": "medium", "count": 2, "explanation": "footer" }
       ]
     },
     {
+      "title": "Sudoku Hard",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "sudoku", "difficulty": "hard", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
       "title": "Binoxxo Hard",
       "sources": [
         { "type": "puzzle", "puzzle_type": "binoxxo", "difficulty": "hard", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Futoshiki Hard",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "futoshiki", "difficulty": "hard", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Kakuro Hard",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "kakuro", "difficulty": "hard", "count": 2, "explanation": "footer" }
+      ]
+    },
+    {
+      "title": "Shikaku Hard",
+      "sources": [
+        { "type": "puzzle", "puzzle_type": "shikaku", "difficulty": "hard", "count": 2, "explanation": "footer" }
       ]
     }
   ]

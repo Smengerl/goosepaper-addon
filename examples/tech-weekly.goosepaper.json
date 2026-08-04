@@ -1,0 +1,121 @@
+{
+  "defaults": {
+    "min_body_text_length": 120
+  },
+  "paper": {
+    "style": "FifthAvenue",
+    "font_size": 9,
+    "page_profile": "paper_pro",
+    "table_of_contents": true,
+    "layout": "auto"
+  },
+  "sections": [
+    {
+      "title": "Tech",
+      "sources": [
+        {
+          "name": "The Verge",
+          "url": "https://www.theverge.com/rss/index.xml",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "Ars Technica",
+          "url": "https://feeds.arstechnica.com/arstechnica/index",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "TechCrunch",
+          "url": "https://techcrunch.com/feed/",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "Wired",
+          "url": "https://www.wired.com/feed/rss",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "Engadget",
+          "url": "https://www.engadget.com/rss.xml",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "The Register",
+          "url": "https://www.theregister.com/headlines.atom",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        }
+      ]
+    },
+    {
+      "title": "Software",
+      "sources": [
+        {
+          "name": "Hacker News",
+          "url": "https://hnrss.org/frontpage",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article",
+          "content_skip_filters": [
+            { "type": "css", "selector": "a[href^='#']:has(svg)" }
+          ]
+        },
+        {
+          "name": "InfoQ",
+          "url": "https://www.infoq.com/feed",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "GitHub Blog",
+          "url": "https://github.blog/feed/",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "Stack Overflow Blog",
+          "url": "https://stackoverflow.blog/feed/",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        },
+        {
+          "name": "Dev.to",
+          "url": "https://dev.to/feed",
+          "limit": 5,
+          "max_age_days": 7,
+          "byline": "none",
+          "body_source": "article"
+        }
+      ]
+    },
+    {
+      "title": "Comic",
+      "sources": [
+        { "type": "comic", "comic_type": "xkcd" }
+      ]
+    }
+  ]
+}

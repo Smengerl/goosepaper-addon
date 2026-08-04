@@ -1,19 +1,28 @@
 {
   "newspapers": [
     {
-      "id": "daily-news",
+      "id": "world-news",
       "enabled": true,
-      "title": "Daily News",
+      "title": "World News",
       "schedule": "0 6 * * *",
-      "goosepaper_config": "daily-news.goosepaper.json",
-      "remarkable_folder": "Daily News",
+      "goosepaper_config": "world-news.goosepaper.json",
+      "remarkable_folder": "World News",
       "retention": { "mode": "keep_last_n", "keep_last_n": 7 }
+    },
+    {
+      "id": "tech-weekly",
+      "enabled": true,
+      "title": "Tech Weekly",
+      "schedule": "0 7 * * 6",
+      "goosepaper_config": "tech-weekly.goosepaper.json",
+      "remarkable_folder": "Tech Weekly",
+      "retention": { "mode": "keep_last_n", "keep_last_n": 4 }
     },
     {
       "id": "puzzles",
       "enabled": true,
       "title": "Puzzle Booklet",
-      "schedule": "0 7 * * 6",
+      "schedule": "0 8 * * 0",
       "goosepaper_config": "puzzle-booklet.goosepaper.json",
       "remarkable_folder": "Puzzle Booklet",
       "retention": { "mode": "keep_last_n", "keep_last_n": 4 }

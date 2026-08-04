@@ -11,23 +11,11 @@
   },
   "sections": [
     {
-      "title": "Tech",
+      "title": "Politics",
       "sources": [
         {
-          "name": "heise online",
-          "url": "https://www.heise.de/rss/heise-atom.xml",
-          "limit": 5,
-          "max_age_days": 1,
-          "byline": "none",
-          "body_source": "article",
-          "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
-          "content_skip_filters": [
-            { "type": "css", "selector": "div.Gallery" }
-          ]
-        },
-        {
-          "name": "TechCrunch",
-          "url": "https://techcrunch.com/feed/",
+          "name": "BBC Politics",
+          "url": "https://feeds.bbci.co.uk/news/politics/rss.xml",
           "limit": 5,
           "max_age_days": 1,
           "byline": "none",
@@ -36,16 +24,34 @@
       ]
     },
     {
-      "title": "Business (Amazon ticker example)",
+      "title": "Business",
       "sources": [
         {
-          "name": "Google News Business",
-          "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en",
-          "limit": 10,
+          "name": "BBC Business",
+          "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+          "limit": 5,
+          "max_age_days": 1,
           "byline": "none",
-          "body_source": "summary",
-          "accept_title_patterns": ["amazon", "amzn"]
+          "body_source": "article"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html",
+          "limit": 5,
+          "max_age_days": 1,
+          "byline": "none",
+          "body_source": "article",
+          "content_skip_filters": [
+            { "type": "css", "selector": "div.RelatedContent-relatedContent" },
+            { "type": "css", "selector": "[data-module='mps-slot']" }
+          ]
         }
+      ]
+    },
+    {
+      "title": "Comic",
+      "sources": [
+        { "type": "comic", "comic_type": "garfield" }
       ]
     },
     {

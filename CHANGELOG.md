@@ -6,6 +6,12 @@ they shipped in.
 ## [1.4.0]
 
 ### Added
+- Reworked the seeded example newspapers into three more realistic, distinct examples instead of
+  a single generic "Daily News": **World News** (daily - BBC Politics/Business, CNBC, Garfield,
+  Wikipedia, Berlin weather), **Tech Weekly** (weekly - The Verge/Ars Technica/TechCrunch/Wired/
+  Engadget/The Register/Hacker News/InfoQ/GitHub Blog/Stack Overflow Blog/Dev.to, XKCD), and an
+  expanded **Puzzle Booklet** (weekly - all 5 puzzle types at all 3 difficulties, 15 sections, up
+  from 5). Verified end-to-end locally (`deliver.py`, no `--deliver`) - all three render cleanly.
 - `hassio_api: true`: once a configured `remarkable_pairing_code` is successfully redeemed, the
   add-on now clears it back to empty via Supervisor's own API — a pairing code is single-use, so
   leaving the old one sitting in Configuration afterward looked reusable when it wasn't.

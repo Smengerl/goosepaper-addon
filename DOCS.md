@@ -47,12 +47,12 @@ newspaper, with its schedule, reMarkable folder, retention policy, and a path to
 {
   "newspapers": [
     {
-      "id": "daily-news",
+      "id": "world-news",
       "enabled": true,
-      "title": "Daily News",
+      "title": "World News",
       "schedule": "0 6 * * *",
-      "goosepaper_config": "daily-news.goosepaper.json",
-      "remarkable_folder": "Daily News",
+      "goosepaper_config": "world-news.goosepaper.json",
+      "remarkable_folder": "World News",
       "retention": { "mode": "keep_last_n", "keep_last_n": 7 }
     }
   ]
