@@ -18,26 +18,15 @@ from __future__ import annotations
 
 import json
 import pathlib
-from typing import Literal, Optional
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict
 
 
 class StrictModel(BaseModel):
     """Unknown fields (typos, stale keys) are a hard error instead of being silently dropped."""
 
     model_config = ConfigDict(extra="forbid")
-
-
-class Retention(StrictModel):
-    mode: Literal["keep_last_n", "keep_all"] = "keep_all"
-    keep_last_n: Optional[int] = None
-
-    @model_validator(mode="after")
-    def _check_keep_last_n(self) -> "Retention":
-        if self.mode == "keep_last_n" and not self.keep_last_n:
-            raise ValueError("retention.keep_last_n is required when mode is 'keep_last_n'")
-        return self
 
 
 class AddonNewspaperEntry(StrictModel):
@@ -47,7 +36,12 @@ class AddonNewspaperEntry(StrictModel):
     schedule: str  # cron expression, e.g. "0 6 * * *" - passed straight to CronTrigger.from_crontab
     goosepaper_config: str  # path to the *.goosepaper.json file with this newspaper's content
     remarkable_folder: str
-    retention: Retention = Field(default_factory=Retention)
+    # None = no retention (upload() gets called without retention_keep_last_n/retention_prefix,
+    # see deliver.py). Matches goosepaper's own DeliverySettings.retention_keep_last_n exactly -
+    # deliberately not a separate mode enum + count pair the way this field used to be modeled:
+    # an Optional[int] already fully encodes "on" vs. "off" on its own, the same way
+    # min_body_text_length/max_body_text_length already do.
+    retention_keep_last_n: Optional[int] = None
 
 
 class AddonConfig(StrictModel):

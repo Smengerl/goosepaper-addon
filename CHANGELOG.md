@@ -3,6 +3,24 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.1]
+
+### Changed
+- `addon_config.json`'s per-newspaper `"retention": { "mode": "keep_last_n"|"keep_all",
+  "keep_last_n": N }` simplified to a flat `"retention_keep_last_n": N` (omit for no retention) -
+  matching goosepaper's own `DeliverySettings.retention_keep_last_n` field exactly. The `mode`
+  enum never carried information `keep_last_n` being set or not didn't already encode - the same
+  "optional int alone means on/off" shape already used for `min_body_text_length`/
+  `max_body_text_length` - so it only bought a redundant Pydantic validator
+  (`Retention._check_keep_last_n`, keeping the two fields consistent with each other) and a
+  translation step in `deliver.py` (`entry.retention.keep_last_n if entry.retention.mode ==
+  "keep_last_n" else None`) collapsing them back into the one bit of information goosepaper's own
+  `upload()` actually wants. `config_schema.py`'s `Retention` class is gone; `scheduler.py`'s
+  startup overview log output is unchanged ("retention: keep last N" / "retention: keep all").
+  `addon_config.json` migrated - both shipped example and the maintainer's own live one - and
+  verified: `load_addon_config()` parses correctly, the startup overview log renders correctly,
+  and a real generation via `preview.sh` still succeeds.
+
 ## [1.7.0]
 
 ### Changed

@@ -165,9 +165,9 @@ def _run_newspaper(newspaper_id: str) -> None:
         logger.exception("Honk! Scheduled run failed for %r", newspaper_id)
 
 
-def _describe_retention(retention: config_schema.Retention) -> str:
-    if retention.mode == "keep_last_n":
-        return f"keep last {retention.keep_last_n}"
+def _describe_retention(retention_keep_last_n: int | None) -> str:
+    if retention_keep_last_n is not None:
+        return f"keep last {retention_keep_last_n}"
     return "keep all"
 
 
@@ -196,7 +196,7 @@ def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir:
             entry.schedule,
             config_schema.resolve_goosepaper_config_path(ADDON_CONFIG_PATH, entry),
             entry.remarkable_folder,
-            _describe_retention(entry.retention),
+            _describe_retention(entry.retention_keep_last_n),
             _last_local_edition(entry.title, output_dir),
         )
     logger.info(

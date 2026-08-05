@@ -23,8 +23,8 @@ Supports all features of the upstream goosepaper-logicpuzzles fork, including:
 - **Daily comic strips** — XKCD, Calvin and Hobbes, or Garfield — embedded as an image story.
 
 **Automatic reMarkable delivery and retention.** Each edition uploads straight to a folder on
-your reMarkable; `retention.mode: "keep_last_n"` cleans up older editions there afterward so
-your device doesn't accumulate every edition forever (see "Retention" below).
+your reMarkable; `retention_keep_last_n` cleans up older editions there afterward so your device
+doesn't accumulate every edition forever (see "Retention" below).
 
 **Zero-effort first run.** A fresh install seeds itself with realistic example newspapers (see
 "Installation" below), ready to go as soon as you've paired a reMarkable — no need to write a
@@ -53,7 +53,7 @@ newspaper, with its schedule, reMarkable folder, retention policy, and a path to
       "schedule": "0 6 * * *",
       "goosepaper_config": "world-news.goosepaper.json",
       "remarkable_folder": "World News",
-      "retention": { "mode": "keep_last_n", "keep_last_n": 7 }
+      "retention_keep_last_n": 7
     }
   ]
 }
@@ -177,8 +177,8 @@ This is read-only and reflects `addon_config.json` only (not each newspaper's se
 
 ## Retention
 
-`retention.mode: "keep_last_n"` deletes older editions from the reMarkable folder after a
-successful upload, keeping only the newest `keep_last_n`. `"keep_all"` never deletes anything.
+`retention_keep_last_n` deletes older editions from the reMarkable folder after a successful
+upload, keeping only the newest N. Omit it (or leave it unset) to never delete anything there.
 The most recently generated PDF is also always kept locally under `/data/output`, independent of
 retention settings, so it stays inspectable without needing reMarkable access.
 

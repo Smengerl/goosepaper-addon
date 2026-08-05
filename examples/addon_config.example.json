@@ -7,7 +7,7 @@
       "schedule": "0 6 * * *",
       "goosepaper_config": "world-news.goosepaper.json",
       "remarkable_folder": "World News",
-      "retention": { "mode": "keep_last_n", "keep_last_n": 7 }
+      "retention_keep_last_n": 7
     },
     {
       "id": "tech-weekly",
@@ -16,7 +16,7 @@
       "schedule": "0 7 * * 6",
       "goosepaper_config": "tech-weekly.goosepaper.json",
       "remarkable_folder": "Tech Weekly",
-      "retention": { "mode": "keep_last_n", "keep_last_n": 4 }
+      "retention_keep_last_n": 4
     },
     {
       "id": "puzzles",
@@ -25,7 +25,7 @@
       "schedule": "0 8 * * 0",
       "goosepaper_config": "puzzle-booklet.goosepaper.json",
       "remarkable_folder": "Puzzle Booklet",
-      "retention": { "mode": "keep_last_n", "keep_last_n": 4 }
+      "retention_keep_last_n": 4
     }
   ]
 }

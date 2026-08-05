@@ -132,9 +132,6 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
         if not deliver:
             continue
 
-        retention_keep_last_n = (
-            entry.retention.keep_last_n if entry.retention.mode == "keep_last_n" else None
-        )
         result = goosepaper_upload(
             filepath=str(output_path),
             delivery_settings={
@@ -144,8 +141,8 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
                 # below), not removed the instant it's uploaded, so the last generated edition
                 # stays inspectable in output/ - e.g. via the HA add-on's file editor/Samba.
                 "cleanup": False,
-                "retention_keep_last_n": retention_keep_last_n,
-                "retention_prefix": f"{entry.title} " if retention_keep_last_n else None,
+                "retention_keep_last_n": entry.retention_keep_last_n,
+                "retention_prefix": f"{entry.title} " if entry.retention_keep_last_n else None,
             },
             interactive=False,
         )
