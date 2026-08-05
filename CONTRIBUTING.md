@@ -32,19 +32,23 @@ From there, see DEVELOPMENT.md's "Running locally" section for the actual `uv sy
 
 There's no automated test suite in this repo yet (see AGENTS.md's "Known nits") — verify a
 change by actually generating a newspaper via `./preview.sh` and checking the resulting PDF.
-Tests around `config_schema.py`'s Pydantic models would be a genuinely useful contribution if
-you're looking for a good first PR.
+Tests around `config_schema.py`'s Pydantic models (now just the addon-config layer - schedule/
+folder/retention) would be a genuinely useful contribution if you're looking for a good first PR.
 
 ## Project-Specific Notes
 
-This add-on is a thin wrapper: scheduling (`scheduler.py`), the two-layer JSON config
-(`config_schema.py`), delivery orchestration (`deliver.py`), and the Home Assistant add-on
-manifest (`config.yaml`/`repository.yaml`/`Dockerfile`). Most *content* features — new story
-providers, RSS filtering behavior, puzzle types, paper styles — actually belong in
+This add-on is a thin wrapper: scheduling (`scheduler.py`), the add-on's own job-description
+config (`config_schema.py` - just `addon_config.json`'s schedule/folder/retention layer now, see
+its own module docstring), delivery orchestration (`deliver.py`), and the Home Assistant add-on
+manifest (`config.yaml`/`repository.yaml`/`Dockerfile`). A `*.goosepaper.json` file's own content
+(sources, paper look) is loaded and parsed entirely by goosepaper itself
+(`goosepaper.config.load_paper_config()`), not by this add-on - almost everything *content*-
+related — new story providers, RSS filtering behavior, puzzle types, paper styles, and the
+`.goosepaper.json` schema itself — belongs in
 [goosepaper-logicpuzzles](https://github.com/Smengerl/goosepaper-logicpuzzles), the fork this
 add-on depends on (pinned via `uv.lock`, see AGENTS.md's "Dependency on the fork"). If what
-you're adding isn't specific to Home Assistant/Supervisor packaging or this add-on's own config
-schema, it's very likely a better fit as a PR against that repo instead.
+you're adding isn't specific to Home Assistant/Supervisor packaging or this add-on's own job-
+description layer, it's very likely a better fit as a PR against that repo instead.
 
 ## Code Style
 

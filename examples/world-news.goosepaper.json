@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "paper": {
     "style": "FifthAvenue",
     "font_size": 9,
@@ -6,90 +7,69 @@
     "table_of_contents": true,
     "layout": "auto"
   },
-  "sections": [
+  "sources": [
     {
-      "title": "Comic",
-      "sources": [
-        {
-          "type": "comic",
-          "comic_type": "garfield"
-        }
-      ]
+      "type": "comic",
+      "comic_type": "garfield",
+      "section": "Comic"
     },
     {
-      "title": "Politics",
-      "sources": [
-        {
-          "name": "BBC Politics",
-          "url": "https://feeds.bbci.co.uk/news/politics/rss.xml",
-          "limit": 5,
-          "max_age_days": 1,
-          "byline": "none",
-          "body_source": "article",
-          "min_body_text_length": 120,
-          "max_body_text_length": 8000
-        }
-      ]
+      "type": "rss",
+      "url": "https://feeds.bbci.co.uk/news/politics/rss.xml",
+      "limit": 5,
+      "since_days_ago": 1,
+      "byline": "none",
+      "body_source": "article",
+      "min_body_text_length": 120,
+      "max_body_text_length": 8000,
+      "section": "Politics"
     },
     {
-      "title": "Business",
-      "sources": [
+      "type": "rss",
+      "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "limit": 5,
+      "since_days_ago": 1,
+      "byline": "none",
+      "body_source": "article",
+      "min_body_text_length": 120,
+      "max_body_text_length": 8000,
+      "section": "Business"
+    },
+    {
+      "type": "rss",
+      "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html",
+      "limit": 5,
+      "since_days_ago": 1,
+      "byline": "none",
+      "body_source": "article",
+      "skip_content_filters": [
         {
-          "name": "BBC Business",
-          "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
-          "limit": 5,
-          "max_age_days": 1,
-          "byline": "none",
-          "body_source": "article",
-          "min_body_text_length": 120,
-          "max_body_text_length": 8000
+          "type": "css",
+          "selector": "div.RelatedContent-relatedContent"
         },
         {
-          "name": "CNBC",
-          "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html",
-          "limit": 5,
-          "max_age_days": 1,
-          "byline": "none",
-          "body_source": "article",
-          "content_skip_filters": [
-            {
-              "type": "css",
-              "selector": "div.RelatedContent-relatedContent"
-            },
-            {
-              "type": "css",
-              "selector": "[data-module='mps-slot']"
-            }
-          ],
-          "min_body_text_length": 120,
-          "max_body_text_length": 8000
+          "type": "css",
+          "selector": "[data-module='mps-slot']"
         }
-      ]
+      ],
+      "min_body_text_length": 120,
+      "max_body_text_length": 8000,
+      "section": "Business"
     },
     {
-      "title": "Wikipedia",
-      "sources": [
-        {
-          "type": "wikipedia",
-          "name": "Wikipedia Top News"
-        }
-      ]
+      "type": "wikipedia",
+      "section": "Wikipedia"
     },
     {
-      "title": "Weather",
-      "sources": [
-        {
-          "type": "weather",
-          "name": "Berlin",
-          "lat": 52.52,
-          "lon": 13.405,
-          "timezone": "Europe/Berlin",
-          "units": "celsius",
-          "mode": "daily",
-          "days": 3,
-          "clock_format": "24h"
-        }
-      ]
+      "type": "weather",
+      "lat": 52.52,
+      "lon": 13.405,
+      "timezone": "Europe/Berlin",
+      "unit": "C",
+      "mode": "daily",
+      "days": 3,
+      "clock_format": "24h",
+      "section": "Weather"
     }
   ]
 }

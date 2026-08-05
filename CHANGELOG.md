@@ -3,6 +3,61 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.0]
+
+### Changed
+- **`*.goosepaper.json` files are now parsed entirely by goosepaper itself**
+  (`goosepaper.config.load_paper_config()` + `construct_story_providers_from_source_configs()`),
+  not by this add-on's own Pydantic schema. `config_schema.py` shrank to just the addon-config
+  layer (`addon_config.json`'s schedule/folder/retention) - the parallel copy of goosepaper's own
+  source-type schema (`RSSSource`/`WikipediaSource`/`WeatherSource`/`PuzzleSource`/`ComicSource`/
+  `Section`/`PaperOptions`/`GoosepaperConfig`) is gone. This existed in the first place because
+  goosepaper's own declarative config format couldn't express several things this add-on needed
+  (`min_body_text_length`/`max_body_text_length`, a `"section"` tag, this add-on's own retention
+  concept) - those gaps are closed upstream now (mainline's README "About this fork" table has
+  the PRs), so duplicating goosepaper's own schema here no longer buys anything, only risks the
+  two drifting apart.
+- `deliver.py`'s `auth_client()` monkeypatch (working around goosepaper's own `auth_client()`
+  hardcoding `interactive=True`, crashing with an uncaught `EOFError` in this headless container)
+  is gone - `interactive` is a real parameter on goosepaper's `auth_client()`/`upload()` now (see
+  mainline's README, PR #137), passed as `interactive=False` directly. The remarkapy
+  `schemaVersion` monkeypatch stays (not yet fixed upstream, see
+  [remarkapy#24](https://github.com/j6k4m8/remarkapy/issues/24)).
+- `deliver.py`'s own `_cleanup_old_editions` (hand-rolled remarkapy folder scan/delete for
+  `retention.mode: "keep_last_n"`) is gone - `upload()` now does this natively via
+  `retention_keep_last_n`/`retention_prefix` (mainline's README, PR #136).
+- **Every `*.goosepaper.json` file - both shipped examples and the maintainer's own live
+  newspapers (`tagesgoose`, `julian`, `raetselheft`) - migrated to goosepaper's native schema**,
+  since the add-on no longer translates between the two:
+  - Top-level `"sections": [{"title": ..., "sources": [...]}]` flattened to `"sources": [...]`
+    with an optional `"section"` tag on each source (goosepaper's own grouping mechanism, PR
+    #132) - same rendered grouping, different JSON shape.
+  - `"max_age_days"` → `"since_days_ago"`, `"content_skip_filters"` → `"skip_content_filters"`,
+    `"content_accept_filters"` → `"accept_content_filters"` on `"rss"` sources - this add-on used
+    friendlier field names than `RSSFeedStoryProvider`'s own and translated silently; no
+    translation layer left to do that, so the JSON itself now uses goosepaper's real names.
+  - `"weather"` sources: `"units": "celsius"/"fahrenheit"` → `"unit": "C"/"F"` - different key
+    *and* different value vocabulary.
+  - A `"name"` field on `"rss"`/`"wikipedia"`/`"weather"` sources is no longer accepted -
+    goosepaper's native schema doesn't have it there (it was purely a decorative label in this
+    add-on's schema, never passed to the provider - except for `"weather"`, see the known
+    limitation below). Removed from every source of those types. `"name"` is unaffected on
+    `"puzzle"` sources - goosepaper's schema accepts it natively there too, unchanged.
+  - Every file now declares `"version": 2` at the top level, required by goosepaper's own loader
+    (this add-on never required or even read this field before).
+  - Verified: all six files parse via `load_paper_config()` and build providers via
+    `construct_story_providers_from_source_configs()` without error; the three live newspapers
+    each regenerated successfully against real, currently-live feeds.
+
+### Known limitation
+- A `"weather"` source's `"name"` used to prefix its headline (`SectionProvider`'s
+  `headline_prefix`, e.g. "Berlin: 21°/9°") so multiple weather sources in one paper could be
+  told apart. Goosepaper's native config-driven pipeline has no declarative equivalent for
+  `headline_prefix` for any source type, so this is gone - headlines are now the bare weather
+  summary (e.g. "21°/9°"). Every current newspaper (shipped examples and the maintainer's own)
+  has exactly one weather source, so this has no visible effect today; only matters if a future
+  paper adds a second one.
+
 ## [1.6.3]
 
 ### Changed

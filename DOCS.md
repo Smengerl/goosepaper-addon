@@ -35,7 +35,7 @@ config from scratch.
 Both files live under `/config` — this add-on's own persistent, editable folder (see
 Installation below for how to reach it). On first start, if `/config` is empty, the add-on
 automatically seeds it with the sanitized examples from [`examples/`](examples/) — so you get a
-working edition right away, with realistic sections to edit rather than starting from a blank
+working edition right away, with realistic content to edit rather than starting from a blank
 file. Edit the seeded `*.goosepaper.json` files (feeds, coordinates) and `addon_config.json`
 (reMarkable folder, schedule) to make them yours; the add-on never overwrites files that already
 exist.
@@ -62,31 +62,36 @@ newspaper, with its schedule, reMarkable folder, retention policy, and a path to
 `goosepaper_config` is resolved relative to `addon_config.json`'s own directory, so newspaper
 files normally sit next to it under `/config`.
 
-**`<name>.goosepaper.json`** (one per newspaper) holds the actual content — paper style and
-sections, each with its sources:
+**`<name>.goosepaper.json`** (one per newspaper) holds the actual content — paper style and a
+flat list of sources, tagged with an optional `"section"` to group them under a shared heading:
 
 ```json
 {
+  "version": 2,
   "paper": { "style": "FifthAvenue", "font_size": 9, "layout": "auto", "table_of_contents": true },
-  "sections": [
+  "sources": [
     {
-      "title": "Tech",
-      "sources": [
-        {
-          "name": "heise online",
-          "url": "https://www.heise.de/rss/heise-atom.xml",
-          "limit": 5,
-          "max_age_days": 1,
-          "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
-          "content_skip_filters": [{ "type": "css", "selector": "div.Gallery" }],
-          "min_body_text_length": 120,
-          "max_body_text_length": 4000
-        }
-      ]
+      "type": "rss",
+      "url": "https://www.heise.de/rss/heise-atom.xml",
+      "limit": 5,
+      "since_days_ago": 1,
+      "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
+      "skip_content_filters": [{ "type": "css", "selector": "div.Gallery" }],
+      "min_body_text_length": 120,
+      "max_body_text_length": 8000,
+      "section": "Tech"
     }
   ]
 }
 ```
+
+This file is parsed entirely by goosepaper itself, not by this add-on - `"version": 2` and every
+field name/shape (`since_days_ago`, `skip_content_filters`, `min_body_text_length`, `"section"`,
+...) is goosepaper's own, documented in
+[its own README](https://github.com/Smengerl/goosepaper-logicpuzzles#readme). This add-on no
+longer carries a parallel copy of that schema, so field names and validation errors come straight
+from goosepaper - if something looks unfamiliar compared to an older version of this add-on, that
+README is the authoritative source, not this file.
 
 `min_body_text_length`/`max_body_text_length` drop a story whose extracted article body is too
 short (a failed extraction) or implausibly long (e.g. a hardware review with a huge photo
