@@ -15,6 +15,16 @@ LABEL \
 # libs. fonts-* gives it something to actually typeset with; ca-certificates is for the RSS/
 # reMarkable-API HTTPS requests deliver.py makes; git is needed by uv to fetch the goosepaper
 # dependency, which pyproject.toml points at https://github.com/Smengerl/goosepaper-logicpuzzles.
+#
+# fonts-noto-color-emoji: fonts-dejavu-core/fonts-liberation have no emoji glyphs at all, so any
+# emoji in RSS-sourced article text (headlines and bodies both) rendered as an empty tofu box in
+# the PDF - confirmed in production logs. This is the actual Debian package name; there is no
+# separate monochrome "fonts-noto-emoji" package. The font itself is SIL OFL 1.1 (per Debian's
+# own copyright metadata for the package, not just upstream's README - see DEVELOPMENT.md's
+# "Assets" section). No extra fontconfig setup needed: libpangoft2-1.0-0 already depends on
+# libfontconfig1 -> fontconfig-config, which ships the bitmap-glyph scaling fix
+# (10-scale-bitmap-fonts.conf) this font's CBDT/CBLC strikes need to render at the right size
+# instead of oversized and breaking the page layout - verified locally before adding this line.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
@@ -25,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         shared-mime-info \
         fonts-dejavu-core \
         fonts-liberation \
+        fonts-noto-color-emoji \
         ca-certificates \
         git \
     && rm -rf /var/lib/apt/lists/*

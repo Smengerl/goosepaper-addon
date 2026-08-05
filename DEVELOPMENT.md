@@ -10,6 +10,13 @@ This is where the build-from-source, local-testing, and roadmap notes live — n
 licensed [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE)
 — same license as this repo — recolored onto a solid background, no other modifications.
 
+The `fonts-noto-color-emoji` Debian package (installed in the Dockerfile so emoji in RSS-sourced
+articles render instead of showing as an empty box) ships
+[Noto Color Emoji](https://github.com/googlefonts/noto-emoji), licensed
+[SIL Open Font License 1.1](https://scripts.sil.org/OFL) — confirmed from Debian's own
+`/usr/share/doc/fonts-noto-color-emoji/copyright` for the package, not just upstream's README
+(their README's Apache-2.0 claim covers the repo's source PNGs, not the built font files).
+
 ## Running locally (no Docker)
 
 ```bash

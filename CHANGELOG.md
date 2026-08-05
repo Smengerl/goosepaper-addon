@@ -3,6 +3,38 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.5.0]
+
+### Added
+- `fonts-noto-color-emoji` in the Dockerfile: `fonts-dejavu-core`/`fonts-liberation` (the only
+  fonts previously installed) have no emoji glyphs, so any emoji in RSS-sourced article text
+  rendered as an empty tofu box in the PDF - confirmed in production logs from the 1.4 run. This
+  only affects this add-on's own Docker image, not `goosepaper-logicpuzzles` or regular
+  goosepaper usage generally, so it's fixed here rather than upstreamed.
+  - Corrects an earlier assumption made while scoping this fix: there is no monochrome
+    `fonts-noto-emoji` Debian package - `fonts-noto-color-emoji` is the only Noto emoji font
+    Debian actually packages, confirmed by searching the archive directly rather than guessing
+    from the upstream GitHub repo's file layout.
+  - Verified locally before shipping: downloaded the exact `.deb` Debian bookworm ships
+    (`fonts-noto-color-emoji_2.042-0+deb12u1_all.deb`, matching this image's base), extracted the
+    real font file, and rendered a test PDF with WeasyPrint 68.1 (the pinned version) using an
+    isolated fontconfig setup that only exposes the same three font packages this Dockerfile
+    installs - macOS's own emoji font was excluded so the test couldn't accidentally pass for the
+    wrong reason. First attempt rendered emoji at wildly oversized, layout-breaking dimensions -
+    traced to a missing `10-scale-bitmap-fonts.conf` fontconfig rule (a known fix for
+    CBDT/CBLC-format color bitmap fonts, standard in fontconfig >=2.13.1). Confirmed
+    `libpangoft2-1.0-0` (already in this Dockerfile) depends on `libfontconfig1` ->
+    `fontconfig-config`, which ships that rule by default - so no extra Dockerfile line is needed
+    for it, and the real container isn't expected to hit the oversized-glyph problem seen in the
+    deliberately minimal test config. Re-tested with the rule included: emoji render correctly
+    sized, inline with body text. See DEVELOPMENT.md's "Assets" section for the font's actual
+    license (SIL OFL 1.1, verified from Debian's own package metadata).
+  - Trade-off: each emoji is now an embedded color bitmap rather than absent, so generated PDFs
+    with emoji-heavy content will be somewhat larger; the font itself adds ~11 MB to the image.
+  - Known limitation: some multi-codepoint ZWJ sequences (e.g. the four-person family emoji) render
+    as separate component glyphs side by side rather than one combined glyph - a limitation of this
+    font build, not of the fix. Simple emoji, flags, and skin-tone modifiers all render correctly.
+
 ## [1.4.1]
 
 Version-only bump, no functional changes - forces Supervisor to notice the LICENSE/icon/logo/
