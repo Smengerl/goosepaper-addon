@@ -3,6 +3,20 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.6.1]
+
+### Fixed
+- `min_body_text_length`/`max_body_text_length` and the `defaults` block were entirely
+  undocumented - zero mentions across README.md/DOCS.md/DEVELOPMENT.md/CONTRIBUTING.md, and no
+  explanatory comments on `RSSSource`'s two fields or the `Defaults` model itself (unlike every
+  other field in `config_schema.py`). Found while double-checking whether the `defaults`
+  mechanism needed to go into the upstream PR for the per-source fields (it doesn't - `defaults`
+  is a pure addon-side wrapper concept, goosepaper's own native schema has no such thing). Added
+  to DOCS.md's "Configuration: two layers" example, plus docstrings on both spots in
+  `config_schema.py`: the `defaults` block applies per newspaper file, not addon-wide; a source's
+  own value always overrides it; `min_body_text_length` defaults to `120` even if `defaults` is
+  omitted entirely, `max_body_text_length` has no built-in default.
+
 ## [1.6.0]
 
 ### Added

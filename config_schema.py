@@ -82,6 +82,8 @@ class RSSSource(StrictModel):
     content_skip_filters: List[ContentFilter] = Field(default_factory=list)
     accept_title_patterns: List[str] = Field(default_factory=list)
     content_accept_filters: List[ContentAcceptFilter] = Field(default_factory=list)
+    # Per-source override for the newspaper-wide Defaults below - None here means "use this
+    # goosepaper config file's defaults.*", not "no limit" (see deliver.py's _build_provider).
     min_body_text_length: Optional[int] = None
     max_body_text_length: Optional[int] = None
 
@@ -164,6 +166,12 @@ class PaperOptions(StrictModel):
 
 
 class Defaults(StrictModel):
+    """Applies to every "rss" source within *this one* goosepaper config file only - there is no
+    addon-wide equivalent, so each newspaper's own file needs its own defaults block. A source
+    that sets its own min_body_text_length/max_body_text_length overrides these (see deliver.py's
+    _build_provider). This is purely an addon-side convenience layer - goosepaper's own native
+    config schema has no "defaults" concept at all, sources are always specified individually."""
+
     min_body_text_length: int = 120
     max_body_text_length: Optional[int] = None
 
