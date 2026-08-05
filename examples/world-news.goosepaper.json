@@ -27,7 +27,7 @@
           "byline": "none",
           "body_source": "article",
           "min_body_text_length": 120,
-          "max_body_text_length": 4000
+          "max_body_text_length": 8000
         }
       ]
     },
@@ -42,7 +42,7 @@
           "byline": "none",
           "body_source": "article",
           "min_body_text_length": 120,
-          "max_body_text_length": 4000
+          "max_body_text_length": 8000
         },
         {
           "name": "CNBC",
@@ -62,7 +62,7 @@
             }
           ],
           "min_body_text_length": 120,
-          "max_body_text_length": 4000
+          "max_body_text_length": 8000
         }
       ]
     },

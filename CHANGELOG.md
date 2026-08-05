@@ -3,6 +3,16 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.6.3]
+
+### Changed
+- `max_body_text_length` raised from `4000` to `8000` (~2 pages instead of ~1) on every `"rss"`
+  source in both shipped examples and the maintainer's own live newspapers - re-verified
+  empirically the same way as the original value: still lands within 2 pages at `paper_pro`/
+  `font_size: 9` (checked 7800-8400 chars, all render as exactly 2 pages), and re-checked against
+  real `tagesgoose` feeds - 111 stories kept, longest surviving one 7851 characters, none over
+  8000.
+
 ## [1.6.2]
 
 ### Removed
