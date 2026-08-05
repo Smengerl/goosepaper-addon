@@ -12,9 +12,13 @@ bookmark-level params) - see the fork's own PRs for the rationale behind each.
 
 What's left as a genuine wrapper concern:
 1. remarkapy reads the account's sync `schemaVersion` from the root manifest and reuses it for
-   writes. Accounts still on schema 3 get rejected by the cloud on every write ("Software must be
-   updated" / update-required) even though the server accepts schema-4 writes just fine. Until
-   upstream remarkapy handles this (https://github.com/j6k4m8/remarkapy), force schema 4.
+   writes. This account's is reported as schema 3, and gets rejected by the cloud on every write
+   ("Software must be updated" / update-required) even though the server accepts schema-4 writes
+   just fine - force schema 4. Reported upstream as
+   https://github.com/j6k4m8/remarkapy/issues/24 (not a PR - forcing this unconditionally isn't
+   verified safe for accounts that might still be genuinely write-limited to schema 3, only for
+   this one). Revisit this patch once that's resolved - it may no longer be needed, or need a
+   narrower condition than "always 4".
 2. Translating this add-on's own config schema (config_schema.py) into fork constructor calls,
    grouped by section (_build_provider/_build_providers below).
 """
