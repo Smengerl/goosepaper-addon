@@ -1,8 +1,4 @@
 {
-  "defaults": {
-    "min_body_text_length": 120,
-    "max_body_text_length": 4000
-  },
   "paper": {
     "style": "FifthAvenue",
     "font_size": 9,
@@ -14,7 +10,10 @@
     {
       "title": "Comic",
       "sources": [
-        { "type": "comic", "comic_type": "xkcd" }
+        {
+          "type": "comic",
+          "comic_type": "xkcd"
+        }
       ]
     },
     {
@@ -26,7 +25,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "Ars Technica",
@@ -34,7 +35,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "TechCrunch",
@@ -42,7 +45,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "Wired",
@@ -50,7 +55,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "Engadget",
@@ -58,7 +65,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "The Register",
@@ -66,7 +75,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         }
       ]
     },
@@ -81,8 +92,13 @@
           "byline": "none",
           "body_source": "article",
           "content_skip_filters": [
-            { "type": "css", "selector": "a[href^='#']:has(svg)" }
-          ]
+            {
+              "type": "css",
+              "selector": "a[href^='#']:has(svg)"
+            }
+          ],
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "InfoQ",
@@ -90,7 +106,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "GitHub Blog",
@@ -98,7 +116,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "Stack Overflow Blog",
@@ -106,7 +126,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         },
         {
           "name": "Dev.to",
@@ -114,7 +136,9 @@
           "limit": 5,
           "max_age_days": 7,
           "byline": "none",
-          "body_source": "article"
+          "body_source": "article",
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         }
       ]
     }

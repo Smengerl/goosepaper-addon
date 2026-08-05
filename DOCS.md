@@ -67,7 +67,6 @@ sections, each with its sources:
 
 ```json
 {
-  "defaults": { "min_body_text_length": 120, "max_body_text_length": 4000 },
   "paper": { "style": "FifthAvenue", "font_size": 9, "layout": "auto", "table_of_contents": true },
   "sections": [
     {
@@ -79,7 +78,9 @@ sections, each with its sources:
           "limit": 5,
           "max_age_days": 1,
           "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
-          "content_skip_filters": [{ "type": "css", "selector": "div.Gallery" }]
+          "content_skip_filters": [{ "type": "css", "selector": "div.Gallery" }],
+          "min_body_text_length": 120,
+          "max_body_text_length": 4000
         }
       ]
     }
@@ -89,14 +90,12 @@ sections, each with its sources:
 
 `min_body_text_length`/`max_body_text_length` drop a story whose extracted article body is too
 short (a failed extraction) or implausibly long (e.g. a hardware review with a huge photo
-gallery, which would otherwise balloon that one entry into the bulk of the whole paper). The
-top-level `defaults` block applies to every `"rss"` source in *this one newspaper file* — it does
-not reach across newspapers, so a value set here in `world-news.goosepaper.json` has no effect on
-`tech-weekly.goosepaper.json`. Any individual source can override either value by setting its own
-`min_body_text_length`/`max_body_text_length` field, which then wins over the default. If
-`defaults` is omitted entirely, `min_body_text_length` still defaults to `120` (dropping
-near-empty extraction failures out of the box); `max_body_text_length` has no built-in default, so
-no upper limit applies unless you set one.
+gallery, which would otherwise balloon that one entry into the bulk of the whole paper). Both are
+set per source - there's no shared/default value at the newspaper or add-on level, so a source
+without either field gets no length filtering at all. `120` is a reasonable floor for catching
+failed extractions; a good starting point for the upper bound is however many characters fill
+about one page in your own paper's `page_profile`/`font_size`/`layout` - see the shipped examples
+for values tuned that way.
 
 ## Installation
 

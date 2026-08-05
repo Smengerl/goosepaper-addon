@@ -94,9 +94,7 @@ from goosepaper.upload import upload as goosepaper_upload  # noqa: E402
 # --- per-source, config-driven provider construction ---------------------------------------------
 
 
-def _build_provider(
-    source: config_schema.Source, section_title: str, defaults: config_schema.Defaults
-) -> StoryProvider:
+def _build_provider(source: config_schema.Source, section_title: str) -> StoryProvider:
     if source.type == "rss":
         inner = RSSFeedStoryProvider(
             rss_path=source.url,
@@ -115,8 +113,8 @@ def _build_provider(
                 for f in source.content_accept_filters
             ],
             accept_title_patterns=source.accept_title_patterns,
-            min_body_text_length=source.min_body_text_length or defaults.min_body_text_length,
-            max_body_text_length=source.max_body_text_length or defaults.max_body_text_length,
+            min_body_text_length=source.min_body_text_length,
+            max_body_text_length=source.max_body_text_length,
             # readability's own title extraction is unreliable on some sites (e.g. it returns
             # just the site name for every Golem article); the feed's own title is always
             # accurate, so always prefer it rather than making this a per-source config option.
@@ -159,7 +157,7 @@ def _build_providers(
     providers = []
     for section in goosepaper_config.sections:
         for source in section.sources:
-            providers.append(_build_provider(source, section.title, goosepaper_config.defaults))
+            providers.append(_build_provider(source, section.title))
     return providers
 
 

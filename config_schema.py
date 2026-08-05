@@ -82,8 +82,10 @@ class RSSSource(StrictModel):
     content_skip_filters: List[ContentFilter] = Field(default_factory=list)
     accept_title_patterns: List[str] = Field(default_factory=list)
     content_accept_filters: List[ContentAcceptFilter] = Field(default_factory=list)
-    # Per-source override for the newspaper-wide Defaults below - None here means "use this
-    # goosepaper config file's defaults.*", not "no limit" (see deliver.py's _build_provider).
+    # No addon-side default or shared "defaults" block on purpose - a 1:1 passthrough of
+    # goosepaper's own native RSSFeedStoryProvider fields (see ../goosepaper-logicpuzzles/
+    # goosepaper/storyprovider/rss.py), which has no such concept either. Set explicitly on
+    # every source that needs it.
     min_body_text_length: Optional[int] = None
     max_body_text_length: Optional[int] = None
 
@@ -165,22 +167,14 @@ class PaperOptions(StrictModel):
     layout: Literal["auto", "1col", "2col", "3col"] = "auto"
 
 
-class Defaults(StrictModel):
-    """Applies to every "rss" source within *this one* goosepaper config file only - there is no
-    addon-wide equivalent, so each newspaper's own file needs its own defaults block. A source
-    that sets its own min_body_text_length/max_body_text_length overrides these (see deliver.py's
-    _build_provider). This is purely an addon-side convenience layer - goosepaper's own native
-    config schema has no "defaults" concept at all, sources are always specified individually."""
-
-    min_body_text_length: int = 120
-    max_body_text_length: Optional[int] = None
-
-
 class GoosepaperConfig(StrictModel):
     """The content of one `*.goosepaper.json` file: paper look + sections. No id/schedule/
-    folder/retention here - those are addon-level, see `AddonNewspaperEntry`."""
+    folder/retention here - those are addon-level, see `AddonNewspaperEntry`. Deliberately no
+    shared "defaults" block: that turned out to be an addon-only abstraction goosepaper's own
+    native config schema has no equivalent for - a per-source-type defaults mechanism, if it's
+    worth having at all, belongs in goosepaper itself where every user benefits, not duplicated
+    here for just this add-on's config layer. Set fields explicitly on each source instead."""
 
-    defaults: Defaults = Field(default_factory=Defaults)
     paper: PaperOptions = Field(default_factory=PaperOptions)
     sections: List[Section]
 

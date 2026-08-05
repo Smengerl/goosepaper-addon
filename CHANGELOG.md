@@ -3,6 +3,25 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.6.2]
+
+### Removed
+- The `defaults` block introduced in 1.6.0/1.6.1 (`config_schema.py`'s `Defaults` model, its
+  `min_body_text_length`/`max_body_text_length` merge in `deliver.py`'s `_build_provider`).
+  Reconsidered after a closer look: this was an addon-only abstraction with no equivalent in
+  goosepaper's own native config schema (which has no "defaults" concept at all - every source is
+  always specified individually there). A per-source-type defaults mechanism is arguably useful
+  in general (`byline`/`body_source` are just as repetitive across sources as the two length
+  fields were), but if it's worth having, it belongs in goosepaper itself where every user
+  benefits - not duplicated here as addon-only scope creep. `RSSSource.min_body_text_length`/
+  `max_body_text_length` are unaffected (still per-source, optional, unchanged) - only the
+  newspaper-wide fallback is gone.
+- `min_body_text_length: 120`/`max_body_text_length: 4000` are now set explicitly on every `"rss"`
+  source in both shipped examples and the maintainer's own live newspapers, instead of once via
+  `defaults` - same effective values as 1.6.0/1.6.1, just spelled out per source rather than
+  inherited. `raetselheft` and `puzzle-booklet` had the now-removed `defaults` key dropped too
+  (neither has any `"rss"` sources for it to have applied to).
+
 ## [1.6.1]
 
 ### Fixed
