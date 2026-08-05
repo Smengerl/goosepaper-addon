@@ -67,6 +67,15 @@ sees every change meant to reach the add-on, patch-level ones included.
   Deliberately deferred past v1 - real CI/build-pipeline work, and the on-device build works
   correctly today for the one arch the maintainer actually runs.
 
+- `deliver.py`'s `_patched_get_root_state` monkeypatches `remarkapy.client.Client.get_root_state`
+  at import time to force `schemaVersion` 4 (accounts still on schema 3 get rejected by the
+  reMarkable cloud on every write, even though it accepts schema-4 writes fine - see the function's
+  own docstring). This patches a third-party library directly, not goosepaper - unlike every other
+  fork-side fix in this project, there's no `goosepaper-logicpuzzles`-style staging fork for
+  `remarkapy` to carry it as a real PR instead of a permanent runtime patch. Found during the
+  scope-creep review (finding 5) - flagged as a candidate for either forking `j6k4m8/remarkapy` the
+  same way `goosepaper` is forked, or opening a PR directly against it. Not started.
+
 ## Supervisor terminology: "addon" vs. "app"
 
 Home Assistant renamed add-ons to "apps" in the 2026.2 release, and Supervisor's internals
