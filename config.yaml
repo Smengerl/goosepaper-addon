@@ -8,7 +8,6 @@ arch:
 startup: application
 boot: auto
 init: false
-hassio_api: true
 map:
   - app_config:rw
 options:

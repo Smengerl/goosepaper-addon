@@ -193,7 +193,7 @@ class AddonNewspaperEntry(StrictModel):
     id: str
     enabled: bool = True
     title: str
-    schedule: str  # cron expression, e.g. "0 6 * * *"; informational until this is containerized
+    schedule: str  # cron expression, e.g. "0 6 * * *" - passed straight to CronTrigger.from_crontab
     goosepaper_config: str  # path to the *.goosepaper.json file with this newspaper's content
     remarkable_folder: str
     retention: Retention = Field(default_factory=Retention)
@@ -211,3 +211,16 @@ def load_addon_config(path: str | pathlib.Path) -> AddonConfig:
 def load_goosepaper_config(path: str | pathlib.Path) -> GoosepaperConfig:
     data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
     return GoosepaperConfig.model_validate(data)
+
+
+def resolve_goosepaper_config_path(
+    addon_config_path: str | pathlib.Path, entry: AddonNewspaperEntry
+) -> pathlib.Path:
+    """`entry.goosepaper_config` is normally a bare filename, resolved relative to
+    `addon_config_path`'s own directory - both deliver.py (to actually load it) and scheduler.py
+    (to show it in the startup overview log) need this exact same resolution, so it lives here
+    once instead of twice."""
+    config_path = pathlib.Path(entry.goosepaper_config)
+    if config_path.is_absolute():
+        return config_path
+    return pathlib.Path(addon_config_path).resolve().parent / config_path

@@ -248,7 +248,6 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
     except Exception as err:
         logger.error("Honk! Could not load %s: %s", addon_config_path, err)
         return 1
-    base_dir = pathlib.Path(addon_config_path).resolve().parent
 
     newspapers = [n for n in addon_config.newspapers if n.enabled]
     if newspaper_id:
@@ -259,9 +258,7 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
 
     out_dir = pathlib.Path(output_dir)
     for entry in newspapers:
-        config_path = pathlib.Path(entry.goosepaper_config)
-        if not config_path.is_absolute():
-            config_path = base_dir / config_path
+        config_path = config_schema.resolve_goosepaper_config_path(addon_config_path, entry)
         try:
             goosepaper_config = config_schema.load_goosepaper_config(config_path)
         except Exception as err:

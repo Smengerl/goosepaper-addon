@@ -23,25 +23,17 @@ appreciated. To make collaboration smooth, please follow these guidelines.
 ## Development Setup
 
 ```bash
-# Clone your fork
 git clone https://github.com/YOUR_USERNAME/goosepaper-addon.git
 cd goosepaper-addon
-
-# Install dependencies
-uv sync
-
-# Generate all enabled newspapers locally, no upload (config/ is gitignored -
-# copy a starting point from examples/ first)
-./preview.sh
-
-# Generate AND upload to reMarkable (needs reMarkable pairing - see DOCS.md)
-./run.sh
 ```
+
+From there, see DEVELOPMENT.md's "Running locally" section for the actual `uv sync`/
+`preview.sh`/`run.sh` workflow — not repeated here to avoid the two drifting out of sync.
 
 There's no automated test suite in this repo yet (see AGENTS.md's "Known nits") — verify a
 change by actually generating a newspaper via `./preview.sh` and checking the resulting PDF.
-Tests around `config_schema.py`'s Pydantic models or `generic_filters.py` would be a genuinely
-useful contribution if you're looking for a good first PR.
+Tests around `config_schema.py`'s Pydantic models would be a genuinely useful contribution if
+you're looking for a good first PR.
 
 ## Project-Specific Notes
 

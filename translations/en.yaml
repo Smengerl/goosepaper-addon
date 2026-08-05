@@ -7,8 +7,9 @@ configuration:
       paste it here, save, then restart the add-on. Only needed once - the pairing is stored
       under /data and survives restarts and updates - or again if you switch to a different
       reMarkable. The add-on refuses to start without a valid pairing; check the Log tab to see
-      whether pairing succeeded. This field clears itself automatically once the code is
-      successfully used - it's single-use anyway.
+      whether pairing succeeded. The field itself is masked but doesn't clear on its own once
+      used - the code is single-use regardless, so it's safe to leave the old value here or
+      clear it yourself.
   generation_log_level:
     name: "Generation log level"
     description: >-

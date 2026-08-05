@@ -8,8 +8,9 @@ configuration:
       danach neu. Nur einmalig nötig - das Pairing wird unter /data gespeichert und übersteht
       Neustarts und Updates - oder erneut, wenn du auf ein anderes reMarkable wechselst. Ohne
       gültiges Pairing startet das Add-on nicht; im Reiter "Protokoll" siehst du, ob das Pairing
-      erfolgreich war. Nach erfolgreicher Verwendung wird das Feld automatisch geleert - der Code
-      ist ohnehin nur einmal gültig.
+      erfolgreich war. Das Feld selbst ist maskiert, leert sich aber nach Verwendung nicht von
+      selbst - der Code ist ohnehin nur einmal gültig, du kannst den alten Wert also stehen
+      lassen oder ihn selbst löschen.
   generation_log_level:
     name: "Log-Level der Generierung"
     description: >-

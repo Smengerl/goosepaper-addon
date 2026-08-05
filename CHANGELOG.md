@@ -10,6 +10,29 @@ CONTRIBUTING.md work below, which shipped without a version change and so wasn't
 update (see AGENTS.md's "Versioning and git tags" - this is exactly the patch-bump case it
 describes: no new git tag for this one, `v1.4.0` stays the reference point).
 
+### Removed
+- `hassio_api: true` and the pairing-code self-clear it enabled (1.4.0's "Added" entry above) -
+  rolled back after an aggressive-complexity review. The actual problem (a one-time code sitting
+  visibly in Configuration) was already solved by masking the field as `password`; auto-clearing
+  it on top was cosmetic-only polish bought with an elevated Supervisor permission, a runtime
+  network dependency, and ~30 lines of code. `remarkable_pairing_code` no longer clears itself -
+  it's still masked, and still single-use regardless, so an old value sitting there is harmless.
+
+### Fixed
+- `deliver.py` and `scheduler.py` each independently re-implemented the same "resolve
+  `goosepaper_config` relative to `addon_config.json`'s directory" logic - now lives once, in
+  `config_schema.resolve_goosepaper_config_path()`.
+- `scheduler.py` had three separate call sites independently reading and error-handling
+  `/data/options.json` - consolidated into one `_read_options()` helper.
+- `config_schema.py`'s `schedule` field comment said "informational until this is containerized"
+  - stale since the add-on *is* the container, and `CronTrigger.from_crontab()` reads this field
+  for real.
+- `CONTRIBUTING.md` pointed at `generic_filters.py` as a good place to add tests; that file no
+  longer exists (removed when the fork absorbed its functionality natively) - now points at
+  `config_schema.py` instead.
+- `CONTRIBUTING.md`'s "Development Setup" duplicated `DEVELOPMENT.md`'s "Running locally"
+  instructions nearly verbatim - now links to it instead of repeating the commands.
+
 ## [1.4.0]
 
 ### Added

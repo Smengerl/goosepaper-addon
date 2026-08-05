@@ -14,7 +14,6 @@ import pathlib
 import shutil
 import signal
 
-import httpx
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from remarkapy.client import Client
@@ -39,12 +38,15 @@ _LOG_LEVELS = {
 }
 
 
-def _read_generation_log_level_option() -> int:
+def _read_options() -> dict:
     try:
-        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
+        return json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        options = {}
-    raw = str(options.get("generation_log_level") or "warning").strip().lower()
+        return {}
+
+
+def _read_generation_log_level_option() -> int:
+    raw = str(_read_options().get("generation_log_level") or "warning").strip().lower()
     return _LOG_LEVELS.get(raw, logging.WARNING)
 
 
@@ -91,41 +93,7 @@ def _seed_default_config() -> None:
 
 
 def _read_pairing_code_option() -> str:
-    try:
-        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return ""
-    return (options.get("remarkable_pairing_code") or "").strip()
-
-
-def _clear_pairing_code_option() -> None:
-    """Best-effort cleanup after a pairing code is successfully redeemed: reMarkable invalidates
-    a pairing code the instant it's used, so leaving the old one sitting in Configuration
-    afterward is misleading - it looks reusable but isn't. Needs `hassio_api: true` (see
-    config.yaml) to call Supervisor's own API and rewrite this add-on's own options. Failure here
-    is only ever logged, never fatal - pairing itself already succeeded by the time this runs.
-    """
-    token = os.environ.get("SUPERVISOR_TOKEN")
-    if not token:
-        return
-    try:
-        options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return
-    if not options.get("remarkable_pairing_code"):
-        return
-    options["remarkable_pairing_code"] = ""
-    try:
-        response = httpx.post(
-            "http://supervisor/addons/self/options",
-            headers={"Authorization": f"Bearer {token}"},
-            json={"options": options},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        logger.info("Honk! Cleared the one-time reMarkable pairing code from the add-on options.")
-    except Exception as err:
-        logger.warning("Honk! Could not clear the used pairing code option: %s", err)
+    return (_read_options().get("remarkable_pairing_code") or "").strip()
 
 
 def _check_and_complete_remarkable_pairing() -> bool:
@@ -177,7 +145,6 @@ def _check_and_complete_remarkable_pairing() -> bool:
     try:
         client.register_device(code)
         logger.info("Honk! reMarkable pairing complete via the configured pairing code.")
-        _clear_pairing_code_option()
         return True
     except Exception as err:
         logger.error(
@@ -209,17 +176,6 @@ def _last_local_edition(title: str, output_dir: pathlib.Path) -> str:
     return matches[-1].name if matches else "none yet"
 
 
-def _resolve_goosepaper_config_path(entry: config_schema.AddonNewspaperEntry) -> pathlib.Path:
-    """Mirrors deliver.py's own resolution of entry.goosepaper_config (relative to
-    addon_config.json's own directory unless already absolute), so the overview log below points
-    at the exact file deliver.py will actually read - not just the raw, possibly-relative string
-    from addon_config.json."""
-    config_path = pathlib.Path(entry.goosepaper_config)
-    if config_path.is_absolute():
-        return config_path
-    return pathlib.Path(ADDON_CONFIG_PATH).resolve().parent / config_path
-
-
 def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir: pathlib.Path) -> None:
     """Read-only overview of the current addon_config.json, logged once at startup so 'what's
     configured, and does it look right' is visible from the Log tab without needing a file editor
@@ -238,7 +194,7 @@ def _log_newspaper_overview(addon_config: config_schema.AddonConfig, output_dir:
             entry.title,
             status,
             entry.schedule,
-            _resolve_goosepaper_config_path(entry),
+            config_schema.resolve_goosepaper_config_path(ADDON_CONFIG_PATH, entry),
             entry.remarkable_folder,
             _describe_retention(entry.retention),
             _last_local_edition(entry.title, output_dir),
