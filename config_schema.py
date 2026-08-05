@@ -8,9 +8,10 @@ is what the eventual Home Assistant add-on's own options hold.
 Layer 2 - **goosepaper config** (`GoosepaperConfig`, one file per newspaper, referenced by path
 from an `AddonNewspaperEntry`): the actual content - paper look (style/font/layout) and sections,
 each with the sources that make it up. `content_skip_filters`/`skip_title_patterns` on an `"rss"`
-source are native to the goosepaper-fork's `RSSFeedStoryProvider` now (see
-../goosepaper-fork/goosepaper/storyprovider/rss.py) - they're validated and applied there, not
-here; this file only has to know their shape well enough to pass them through untouched.
+source are native to the goosepaper-logicpuzzles fork's `RSSFeedStoryProvider` now (see
+../goosepaper-logicpuzzles/goosepaper/storyprovider/rss.py) - they're validated and applied
+there, not here; this file only has to know their shape well enough to pass them through
+untouched.
 """
 
 from __future__ import annotations

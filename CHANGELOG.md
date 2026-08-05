@@ -32,6 +32,14 @@ describes: no new git tag for this one, `v1.4.0` stays the reference point).
   `config_schema.py` instead.
 - `CONTRIBUTING.md`'s "Development Setup" duplicated `DEVELOPMENT.md`'s "Running locally"
   instructions nearly verbatim - now links to it instead of repeating the commands.
+- `config_schema.py`'s module docstring pointed at `../goosepaper-fork/...` for the upstream RSS
+  provider source - that directory has never existed under that name; the actual sibling checkout
+  is `goosepaper-logicpuzzles`.
+- `DOCS.md`'s "Configured newspapers" example log block still showed the maintainer's old
+  personal newspaper names (`tagesgoose`, plus a mismatched `julian`/`Techweekly` leftover) rather
+  than the actual shipped examples (`world-news`/`tech-weekly`/`puzzles`).
+- `AGENTS.md` pointed at "the Roadmap section in `README.md`" - it lives in `DEVELOPMENT.md`;
+  README.md has no Roadmap section at all.
 
 ## [1.4.0]
 

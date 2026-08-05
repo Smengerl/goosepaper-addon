@@ -23,7 +23,7 @@ non-obvious steps; skipping any of them leads to "I pushed but nothing changed" 
    and report success. `update` (the real action to use) refuses outright with
    "No update available" until the store cache has actually refreshed.
 3. **Expect the build itself to take several minutes** (WeasyPrint/Pango compiled fresh on ARM
-   every time - there is no prebuilt image yet, see the Roadmap section in `README.md`). Any
+   every time - there is no prebuilt image yet, see the Roadmap section in `DEVELOPMENT.md`). Any
    `install`/`update`/`rebuild` API call will very likely hit an MCP/HTTP client timeout well
    before the build finishes - this is *not* a failure, the job keeps running server-side
    regardless. Verify actual progress via Supervisor's own logs instead of trusting the call's

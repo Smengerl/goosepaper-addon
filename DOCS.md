@@ -149,9 +149,10 @@ cron schedule, the resolved path to its `*.goosepaper.json`, reMarkable folder, 
 and the most recently generated local PDF (if any) — visible under the **Protokoll**/Log tab:
 
 ```
-Honk! Configured newspapers (2), read from /config/addon_config.json:
-Honk!   - tagesgoose 'Tagesgoose' - enabled, cron '0 6 * * *', config /config/tagesgoose.goosepaper.json, folder 'Tagesgoose', retention: keep last 7, last local edition: Tagesgoose 2026-08-03.pdf
-Honk!   - julian 'Techweekly' - enabled, cron '0 18 * * 1', config /config/techweekly.goosepaper.json, folder 'Techweekly', retention: keep last 4, last local edition: Techweekly 2026-08-03.pdf
+Honk! Configured newspapers (3), read from /config/addon_config.json:
+Honk!   - world-news 'World News' - enabled, cron '0 6 * * *', config /config/world-news.goosepaper.json, folder 'World News', retention: keep last 7, last local edition: World News 2026-08-03.pdf
+Honk!   - tech-weekly 'Tech Weekly' - enabled, cron '0 7 * * 6', config /config/tech-weekly.goosepaper.json, folder 'Tech Weekly', retention: keep last 4, last local edition: none yet
+Honk!   - puzzles 'Puzzle Booklet' - enabled, cron '0 8 * * 0', config /config/puzzle-booklet.goosepaper.json, folder 'Puzzle Booklet', retention: keep last 4, last local edition: none yet
 ```
 
 This is read-only and reflects `addon_config.json` only (not each newspaper's sections/sources)
