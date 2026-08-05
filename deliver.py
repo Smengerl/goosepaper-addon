@@ -116,7 +116,7 @@ def _build_provider(
             ],
             accept_title_patterns=source.accept_title_patterns,
             min_body_text_length=source.min_body_text_length or defaults.min_body_text_length,
-            max_body_text_length=source.max_body_text_length,
+            max_body_text_length=source.max_body_text_length or defaults.max_body_text_length,
             # readability's own title extraction is unreliable on some sites (e.g. it returns
             # just the site name for every Golem article); the feed's own title is always
             # accurate, so always prefer it rather than making this a per-source config option.

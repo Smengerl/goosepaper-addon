@@ -3,6 +3,25 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.6.0]
+
+### Added
+- `defaults.max_body_text_length` in a `*.goosepaper.json` file's top-level `defaults` block -
+  mirrors the existing `defaults.min_body_text_length`, applying a shared cap to every `"rss"`
+  source that doesn't set its own `max_body_text_length` (a per-source override already existed
+  on `RSSSource`, but `Defaults` and `deliver.py`'s merge logic only ever knew about the minimum
+  side - `config_schema.py`'s `Defaults` model didn't have the field at all, so it wasn't even
+  possible to set this via `defaults`, only per source).
+- Set to `4000` in both shipped examples (`world-news`, `tech-weekly`) and both of the
+  maintainer's own live newspapers with RSS sources (`tagesgoose`, `julian` - `raetselheft` has
+  none). Chosen empirically, not guessed: rendered a single placeholder story through the real
+  pipeline (`page_profile: paper_pro`, `font_size: 9`, 2-column layout) for both `FifthAvenue` and
+  `Autumn` (the two styles actually in use) and binary-searched for where it just spills onto a
+  second page - landed at ~4000-4100 visible characters for both styles, so one shared value
+  works across both. Verified against real, currently-live feeds (not synthetic text): with the
+  limit off, 31 of 115 fetched `tagesgoose` stories exceeded 4000 characters (up to 38,400 from a
+  single InfoQ conference-talk writeup); with it on, the longest surviving story was 3,997.
+
 ## [1.5.0]
 
 ### Added

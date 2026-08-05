@@ -165,6 +165,7 @@ class PaperOptions(StrictModel):
 
 class Defaults(StrictModel):
     min_body_text_length: int = 120
+    max_body_text_length: Optional[int] = None
 
 
 class GoosepaperConfig(StrictModel):
