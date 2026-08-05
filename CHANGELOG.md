@@ -3,6 +3,13 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.4.1]
+
+Version-only bump, no functional changes - forces Supervisor to notice the LICENSE/icon/logo/
+CONTRIBUTING.md work below, which shipped without a version change and so wasn't detected as an
+update (see AGENTS.md's "Versioning and git tags" - this is exactly the patch-bump case it
+describes: no new git tag for this one, `v1.4.0` stays the reference point).
+
 ## [1.4.0]
 
 ### Added
