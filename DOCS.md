@@ -1,26 +1,20 @@
 # Goosepaper — Documentation
 
-Generates personalized newspaper PDFs from RSS feeds (plus Wikipedia, weather, puzzle, and comic
-sections) and delivers them to a reMarkable tablet, on a schedule you set per newspaper. Built on
-[goosepaper-logicpuzzles](https://github.com/Smengerl/goosepaper-logicpuzzles), a public fork of
-[goosepaper](https://github.com/j6k4m8/goosepaper) extended with a puzzle-generator provider
-(Sudoku, Binoxxo, Futoshiki, Kakuro, Shikaku), a daily-comic provider, and native RSS ad/paywall
-filtering.
+A Home Assistant add-on wrapping
+[goosepaper-logicpuzzles](https://github.com/Smengerl/goosepaper-logicpuzzles) (a public fork of
+[goosepaper](https://github.com/j6k4m8/goosepaper)) — delivers a personalized newspaper PDF to a
+reMarkable tablet, on a schedule you set per newspaper. This document covers what's specific to
+running it as an add-on: installation, pairing, scheduling multiple newspapers, and retention.
+For everything about what actually goes *into* an edition — available source types (RSS,
+Wikipedia, weather, puzzles, comics, ...), filtering options, paper styling — see
+[the fork's own README](https://github.com/Smengerl/goosepaper-logicpuzzles#readme); that's the
+authoritative, up-to-date reference, not duplicated here.
 
 ## What it can do
 
 **Multiple newspapers, independently scheduled.** Run a daily news digest, a weekend puzzle
 booklet, or a kids' edition side by side — each with its own cron schedule, reMarkable folder,
 and retention policy, defined once in `addon_config.json`.
-
-Supports all features of the upstream goosepaper-logicpuzzles fork, including:
-
-- **RSS feeds** including stripping ad blocks, cookie banners, and paywall stubs out of fetched articles
-- **Wikipedia**'s current-events section.
-- **Weather** forecasts (Open-Meteo) for any location.
-- **Logic puzzles** — Sudoku, Binoxxo, Futoshiki, Kakuro, Shikaku — generated fresh on every run
-  (not pulled from a bank of pre-made puzzles), with configurable difficulty.
-- **Daily comic strips** — XKCD, Calvin and Hobbes, or Garfield — embedded as an image story.
 
 **Automatic reMarkable delivery and retention.** Each edition uploads straight to a folder on
 your reMarkable; `retention_keep_last_n` cleans up older editions there afterward so your device
@@ -62,45 +56,28 @@ newspaper, with its schedule, reMarkable folder, retention policy, and a path to
 `goosepaper_config` is resolved relative to `addon_config.json`'s own directory, so newspaper
 files normally sit next to it under `/config`.
 
-**`<name>.goosepaper.json`** (one per newspaper) holds the actual content — paper style and a
-flat list of sources, tagged with an optional `"section"` to group them under a shared heading:
+**`<name>.goosepaper.json`** (one per newspaper) is a plain goosepaper config — paper style plus a
+list of sources — parsed entirely by goosepaper itself, not by this add-on. This add-on no longer
+carries its own copy of that schema, so field names, available source types, and validation
+errors all come straight from goosepaper; **[its README](https://github.com/Smengerl/goosepaper-logicpuzzles#readme)
+is the authoritative, full reference** for everything a source can do (RSS filtering, puzzle/comic
+options, weather, styling, ...) - not repeated here, so it can't drift out of sync with it.
+
+The one thing worth knowing at the add-on level: any source can carry an optional `"section"` tag
+to group it with others under a shared heading - handy once a newspaper mixes several sources:
 
 ```json
 {
   "version": 2,
-  "paper": { "style": "FifthAvenue", "font_size": 9, "layout": "auto", "table_of_contents": true },
+  "paper": { "style": "FifthAvenue", "font_size": 9 },
   "sources": [
-    {
-      "type": "rss",
-      "url": "https://www.heise.de/rss/heise-atom.xml",
-      "limit": 5,
-      "since_days_ago": 1,
-      "skip_title_patterns": ["^anzeige:", "^heise-angebot:"],
-      "skip_content_filters": [{ "type": "css", "selector": "div.Gallery" }],
-      "min_body_text_length": 120,
-      "max_body_text_length": 8000,
-      "section": "Tech"
-    }
+    { "type": "rss", "url": "https://www.heise.de/rss/heise-atom.xml", "section": "Tech" }
   ]
 }
 ```
 
-This file is parsed entirely by goosepaper itself, not by this add-on - `"version": 2` and every
-field name/shape (`since_days_ago`, `skip_content_filters`, `min_body_text_length`, `"section"`,
-...) is goosepaper's own, documented in
-[its own README](https://github.com/Smengerl/goosepaper-logicpuzzles#readme). This add-on no
-longer carries a parallel copy of that schema, so field names and validation errors come straight
-from goosepaper - if something looks unfamiliar compared to an older version of this add-on, that
-README is the authoritative source, not this file.
-
-`min_body_text_length`/`max_body_text_length` drop a story whose extracted article body is too
-short (a failed extraction) or implausibly long (e.g. a hardware review with a huge photo
-gallery, which would otherwise balloon that one entry into the bulk of the whole paper). Both are
-set per source - there's no shared/default value at the newspaper or add-on level, so a source
-without either field gets no length filtering at all. `120` is a reasonable floor for catching
-failed extractions; a good starting point for the upper bound is however many characters fill
-about one page in your own paper's `page_profile`/`font_size`/`layout` - see the shipped examples
-for values tuned that way.
+See the shipped [`examples/`](examples/) for realistic, fuller configs (RSS filtering, puzzles,
+comics, weather) to copy from and adapt.
 
 ## Installation
 
