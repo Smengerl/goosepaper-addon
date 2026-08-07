@@ -3,6 +3,19 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.2]
+
+### Fixed
+- `goosepaper-logicpuzzles` bumped to `mainline@bc73ef9`, picking up a follow-up fix for the
+  relative-URL resolution added in 1.6 (`fix/rss-relative-image-urls`, upstream j6k4m8/goosepaper
+  [#135](https://github.com/j6k4m8/goosepaper/pull/135)): protocol-relative image URLs
+  (`<img src="//host/path">`, seen in the wild in cgames.de/Gamestar RSS items) were mistakenly
+  treated as already-absolute (`urlparse().netloc` is truthy for them too, even without a scheme)
+  and left unresolved, so they later broke against the newspaper's `file://` base_url ("Failed to
+  load image at 'file://host/path': ... No such file or directory" in the log, images silently
+  missing from the PDF). Version bumped (not just the pin) specifically so the Supervisor store
+  picks this up and rebuilds promptly instead of waiting for its next periodic repository refresh.
+
 ## [1.7.1]
 
 ### Changed
