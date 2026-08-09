@@ -3,6 +3,24 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.3]
+
+### Fixed
+- `goosepaper-logicpuzzles` bumped to `mainline@3fca97c`, picking up a follow-up fix for the
+  duplicate-headline stripping added in 1.5 (`fix/rss-duplicate-embedded-headline`, upstream
+  j6k4m8/goosepaper [#134](https://github.com/j6k4m8/goosepaper/pull/134)): the filter only ever
+  recognized a duplicated `h1`/`h2`/`h3` as the thing to strip. heise.de (all three heise sources)
+  auto-generates a table-of-contents widget at the top of every article
+  (`<a-collapse class="a-toc"><nav><ol><li><span aria-current="page">`) whose "current page" entry
+  holds the plain headline text with no heading tag at all - that text's own length blew the
+  filter's 40-character "preceding chrome" budget before it ever got a chance to recognize the
+  duplicate, so it went through untouched: headline rendered twice in the PDF, with a spurious
+  list bullet/number in front of the second copy. Confirmed live on two Tagesgoose editions
+  ("Amazon plant gigantisches Gaskraftwerk..." and "Daimler Truck setzt nach Gewinneinbruch...",
+  both heise pieces). The filter now matches any element (not just heading tags) whose full text
+  equals the headline, which also fixes stripping the *whole* offending wrapper instead of just
+  the innermost text node.
+
 ## [1.7.2]
 
 ### Fixed
