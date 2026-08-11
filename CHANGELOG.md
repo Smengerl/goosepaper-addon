@@ -3,6 +3,48 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.4]
+
+### Added
+- `goosepaper-logicpuzzles` bumped to `mainline@e15f6fb`. The `"comic"` source's `comic_type`
+  values `"cah"`/`"garfield"` are replaced by generic `"gocomics"`/`"arcamax"` site-backed
+  sources plus a new `comic_name` field (the comic's own slug on that site, e.g.
+  `"calvinandhobbes"`, `"beetlebailey"`) - any comic hosted on either site now works without a
+  code change, not just the two that were previously hardcoded (upstream j6k4m8/goosepaper
+  [#133](https://github.com/j6k4m8/goosepaper/pull/133), not yet merged upstream). Existing
+  configs using `"cah"`/`"garfield"` must be updated to the new `comic_type`/`comic_name` form -
+  see
+  [docs/reference/storyprovider/comic.py.md](https://github.com/Smengerl/goosepaper-logicpuzzles/blob/mainline/docs/reference/storyprovider/comic.py.md)
+  in the fork.
+
+### Fixed
+- `gocomics.com`'s date-scoped comic URL now retries a few days back if the requested day's strip
+  isn't published yet (its own publish-rollover time/timezone isn't documented), instead of
+  failing outright every time generation happens to run earlier in the day than that rollover.
+- RSS-embedded article images are now decoded and re-encoded through Pillow (bounded dimensions,
+  normalized color mode, always JPEG) before embedding, the same defensive step comic strip
+  images already got - oversized photos, palette-mode PNGs, and WebP files (a format WeasyPrint's
+  image backend can't decode at all) were a known way for WeasyPrint to silently drop an image,
+  or sometimes an entire story, with no exception or log line. Verified live against a real daily
+  edition: fixed all but one of 53 previously-embedded images (upstream j6k4m8/goosepaper
+  [#142](https://github.com/j6k4m8/goosepaper/pull/142), not yet merged upstream).
+- A second, unrelated bug in the same area: `_make_urls_absolute` only stripped readability's
+  synthetic `<html><body>` wrapper from an extracted article body when it actually rewrote a URL
+  - an article whose links/images were already all absolute (common) leaked that wrapper straight
+  into the assembled newspaper HTML verbatim, and a second `<html>` tag appearing mid-document is
+  enough to confuse WeasyPrint's parser into silently dropping everything after it (upstream
+  j6k4m8/goosepaper [#141](https://github.com/j6k4m8/goosepaper/pull/141), not yet merged
+  upstream, follow-up to the already-merged
+  [#135](https://github.com/j6k4m8/goosepaper/pull/135)).
+
+### Known issue
+- Even with both fixes above, a very large, image-heavy daily edition can still lose the odd
+  story: verified live that this is a cumulative, document-wide WeasyPrint resource/layout limit,
+  not a single bad image or a single bug - a truncated version of the same (already-fixed)
+  document rendered stories correctly that the full edition still dropped. Not yet resolved;
+  likely needs a document-wide image weight budget or splitting very large editions rather than a
+  per-image fix.
+
 ## [1.7.3]
 
 ### Fixed
