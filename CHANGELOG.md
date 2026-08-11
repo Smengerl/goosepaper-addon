@@ -3,6 +3,17 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.5]
+
+### Fixed
+- `goosepaper-logicpuzzles` bumped to `mainline@c1dc0ae`. RSS `min_body_text_length`/
+  `max_body_text_length` gating (`visible_text_length()`) now collapses whitespace runs before
+  measuring, instead of counting the newlines/indentation of pretty-printed source HTML as
+  "visible text" - a short teaser-only extraction from a heavily-indented page could otherwise
+  clear the threshold on pure source formatting rather than real content. A headline repeated as
+  the leading line of an RSS entry's own embedded `<content>`/`<summary>` is also stripped before
+  this same length check now, not just on the readability-extracted `"article"` body path.
+
 ## [1.7.4]
 
 ### Added
