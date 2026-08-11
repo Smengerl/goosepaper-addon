@@ -10,7 +10,8 @@
   "sources": [
     {
       "type": "comic",
-      "comic_type": "garfield",
+      "comic_type": "gocomics",
+      "comic_name": "garfield",
       "section": "Comic"
     },
     {
