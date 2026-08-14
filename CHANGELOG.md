@@ -3,6 +3,36 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.6]
+
+### Changed
+- **Puzzle rule blurbs, and the "- Solution"/"How does X work?" text generated for solution and
+  explanation stories, are now English instead of German.** This was fork-only localization on
+  `mainline` (never something upstream `j6k4m8/goosepaper` carried or was ever going to merge as
+  a PR) - removed in favor of matching upstream's own English text, since there's no need to
+  carry a translation the fork itself no longer wants to maintain separately. If you're reading
+  this because your own "Rätselheft" edition suddenly reads in English: that's this change, not
+  a bug. Your own `section` labels (e.g. `"Sudoku Leicht"`) are untouched - those are your config,
+  not generated text.
+
+### Fixed
+- `goosepaper-logicpuzzles` bumped to `mainline@4035f15`. Three things landed since the `1.7.5`
+  pin (`mainline@c1dc0ae`):
+  - Kakuro's row/column clue-cell sums are now flush-centered in their triangles - a nested 2x2
+    `<table>` per clue cell (matching kakuros.com's own markup), replacing an absolutely-positioned
+    layout that WeasyPrint rendered with an inverted vertical axis, and a later CSS Grid attempt
+    that turned out to duplicate each grid item into two overlapping boxes internally.
+  - `prefer_feed_title` (an `"rss"` source option added upstream in
+    [#129](https://github.com/j6k4m8/goosepaper/pull/129)) is now actually usable from a
+    `.goosepaper.json` file. It existed on `RSSFeedStoryProvider`'s constructor already, but
+    `config.py`'s schema never listed it as a valid field and `util.py` never passed it through
+    even if it somehow got past validation - `{"type": "rss", ..., "prefer_feed_title": true}`
+    previously raised `"Unknown field(s)"` outright. Filed upstream as
+    [#144](https://github.com/j6k4m8/goosepaper/pull/144), not yet merged.
+  - `_make_urls_absolute`'s synthetic `<html><body>` wrapper fix (already shipped in `1.7.4`) is
+    now merged upstream as [#141](https://github.com/j6k4m8/goosepaper/pull/141) - no behavior
+    change for this add-on, just a doc-comment cleanup on the fork side once it landed.
+
 ## [1.7.5]
 
 ### Fixed
