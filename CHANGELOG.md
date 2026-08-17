@@ -1,523 +1,194 @@
 # Changelog
 
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
-they shipped in.
+they shipped in. Entries describe what changed for you as someone running the add-on - for the
+full technical story behind any entry, follow its commit-history link.
 
 ## [1.7.8]
 
 ### Fixed
-- `goosepaper-logicpuzzles` bumped to `mainline@4ea3bb5`, picking up one follow-up fix for the
-  render-time image sizing work in `1.7.7`: an image that fails to inline (fetch error, decode
-  error, non-image response, ...) is now removed from the story instead of being left as a dead
-  `http(s)://` link. Leaving it in place meant WeasyPrint's own image loader tried - and failed -
-  to fetch the exact same URL a second time while actually rendering the PDF, so one failure
-  produced two log lines (this add-on's own `"Sad honk :/ Failed to inline image"` and
-  WeasyPrint's own `"Failed to load image at ...: HTTPError"`) plus a wasted second network
-  request. Now: one log line, no WeasyPrint error, and the story's other content (including any
-  other, correctly-formed image in the same article) still renders normally.
-  - Directly addresses the `1.7.7` changelog's "Known issue": verified live against the same
-    `cst.cam.ac.uk` article (a duplicated `<img>` tag on their own page whose `src` contains
-    another tag's raw markup, always 404s) - this is still a bug on that source page, not
-    something this add-on can fix at the root, but it no longer produces confusing double
-    log output or a second doomed fetch when it happens. Filed upstream as
-    [j6k4m8/goosepaper#145](https://github.com/j6k4m8/goosepaper/pull/145) (comment), not yet
-    merged.
+- An image that can't be loaded from its source page no longer produces a duplicate, confusing
+  error in the log - just one clear line instead of two.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/15d6b34...06d4ed3)
 
 ## [1.7.7]
 
 ### Changed
-- `goosepaper-logicpuzzles` bumped to `mainline@a467723` (nine commits since the `1.7.6` pin,
-  `mainline@4035f15`) - image transcoding moved out of the individual story providers and into a
-  single render-time pass:
-  - `RSSFeedStoryProvider` and `DailyComicStoryProvider` no longer each re-encode images
-    themselves against a hardcoded, guessed 1200px constant. `Goosepaper._render_html_document()`
-    now does this once, for every story regardless of source, sizing the cap off the *actual*
-    `page_profile`/column layout being rendered (content width ÷ columns × 200 DPI) instead of a
-    single flat guess. Verified upstream against the maintainer's real `tagesgoose` config (26 RSS
-    feeds + XKCD + puzzles + weather/wikipedia): identical story/page counts and the same 50/54
-    successfully-inlined images as before, but total embedded image payload roughly halved
-    (5.92MB -> 2.93MB) at this add-on's own `paper_pro`/2-column profile, no visible quality loss.
-  - Fixes an HTML-attribute-injection hole in `comic.py`: a comic source page whose `src`
-    attribute contained a decoded `"` could break out of the `<img src="...">` f-string and inject
-    arbitrary markup (an `onerror` attribute was reproduced surviving into rendered output).
-    `image_url` is now escaped the same way `alt_text` already was.
-  - Per-story failure isolation (one story's image-processing exception can't take the whole
-    render down) now covers the new render-time loop and `to_epub()` as well - previously
-    `to_epub()` never called the image-inlining step at all, so it got zero image processing.
+- Generated PDFs are noticeably smaller - embedded images are now sized to fit the page/column
+  they're actually shown at, instead of a fixed guess. No visible quality loss.
 
 ### Fixed
-- A leading `<style>` block (the shape every comic story's `body_html` starts with) no longer gets
-  silently dropped by `_inline_story_images()` - lxml relocates a bare top-of-fragment `<style>`
-  tag into an implied `<head>` while parsing, which a prior version of this pass didn't account
-  for; every comic story was losing its centering/caption CSS once its image got inlined.
+- Closed a security issue where a crafted image link on a comic source's page could inject
+  unwanted markup into your generated PDF.
+- Comic strips no longer occasionally lose their centering/caption styling.
 
-### Known issue
-- This does not change how a source page's own malformed markup is handled: `_make_urls_absolute`
-  (unchanged by this bump) extracts and absolutizes whatever is actually in an `<img src>`
-  attribute without validating its content. A source site serving garbage there (confirmed live
-  against `cst.cam.ac.uk`, which has a duplicated `<img>` tag with another tag's raw markup pasted
-  into its own `src`) still produces a 404 in the log and a remote-link fallback for that one
-  image - a bug on the source page, not something this add-on or the fork can reasonably work
-  around by guessing at broken HTML.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/97b65bc...15d6b34)
 
 ## [1.7.6]
 
 ### Changed
-- **Puzzle rule blurbs, and the "- Solution"/"How does X work?" text generated for solution and
-  explanation stories, are now English instead of German.** This was fork-only localization on
-  `mainline` (never something upstream `j6k4m8/goosepaper` carried or was ever going to merge as
-  a PR) - removed in favor of matching upstream's own English text, since there's no need to
-  carry a translation the fork itself no longer wants to maintain separately. If you're reading
-  this because your own "Rätselheft" edition suddenly reads in English: that's this change, not
-  a bug. Your own `section` labels (e.g. `"Sudoku Leicht"`) are untouched - those are your config,
-  not generated text.
+- Puzzle rule text and the "Solution"/"How does X work?" headings are now in English instead of
+  German. If your "Rätselheft" edition suddenly reads in English, that's this change - your own
+  `section` labels (e.g. `"Sudoku Leicht"`) are unaffected.
 
 ### Fixed
-- `goosepaper-logicpuzzles` bumped to `mainline@4035f15`. Three things landed since the `1.7.5`
-  pin (`mainline@c1dc0ae`):
-  - Kakuro's row/column clue-cell sums are now flush-centered in their triangles - a nested 2x2
-    `<table>` per clue cell (matching kakuros.com's own markup), replacing an absolutely-positioned
-    layout that WeasyPrint rendered with an inverted vertical axis, and a later CSS Grid attempt
-    that turned out to duplicate each grid item into two overlapping boxes internally.
-  - `prefer_feed_title` (an `"rss"` source option added upstream in
-    [#129](https://github.com/j6k4m8/goosepaper/pull/129)) is now actually usable from a
-    `.goosepaper.json` file. It existed on `RSSFeedStoryProvider`'s constructor already, but
-    `config.py`'s schema never listed it as a valid field and `util.py` never passed it through
-    even if it somehow got past validation - `{"type": "rss", ..., "prefer_feed_title": true}`
-    previously raised `"Unknown field(s)"` outright. Filed upstream as
-    [#144](https://github.com/j6k4m8/goosepaper/pull/144), not yet merged.
-  - `_make_urls_absolute`'s synthetic `<html><body>` wrapper fix (already shipped in `1.7.4`) is
-    now merged upstream as [#141](https://github.com/j6k4m8/goosepaper/pull/141) - no behavior
-    change for this add-on, just a doc-comment cleanup on the fork side once it landed.
+- Kakuro clue numbers are now centered correctly in their triangles.
+- The `prefer_feed_title` RSS option can now actually be used in a `.goosepaper.json` file
+  (previously rejected with an error).
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/e5f937c...97b65bc)
 
 ## [1.7.5]
 
 ### Fixed
-- `goosepaper-logicpuzzles` bumped to `mainline@c1dc0ae`. RSS `min_body_text_length`/
-  `max_body_text_length` gating (`visible_text_length()`) now collapses whitespace runs before
-  measuring, instead of counting the newlines/indentation of pretty-printed source HTML as
-  "visible text" - a short teaser-only extraction from a heavily-indented page could otherwise
-  clear the threshold on pure source formatting rather than real content. A headline repeated as
-  the leading line of an RSS entry's own embedded `<content>`/`<summary>` is also stripped before
-  this same length check now, not just on the readability-extracted `"article"` body path.
+- RSS articles with short, heavily-formatted source HTML were sometimes wrongly kept or dropped
+  by the article-length filter based on formatting, not actual content.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/3c36e49...e5f937c)
 
 ## [1.7.4]
 
 ### Added
-- `goosepaper-logicpuzzles` bumped to `mainline@e15f6fb`. The `"comic"` source's `comic_type`
-  values `"cah"`/`"garfield"` are replaced by generic `"gocomics"`/`"arcamax"` site-backed
-  sources plus a new `comic_name` field (the comic's own slug on that site, e.g.
-  `"calvinandhobbes"`, `"beetlebailey"`) - any comic hosted on either site now works without a
-  code change, not just the two that were previously hardcoded (upstream j6k4m8/goosepaper
-  [#133](https://github.com/j6k4m8/goosepaper/pull/133), not yet merged upstream). Existing
-  configs using `"cah"`/`"garfield"` must be updated to the new `comic_type`/`comic_name` form -
-  see
-  [docs/reference/storyprovider/comic.py.md](https://github.com/Smengerl/goosepaper-logicpuzzles/blob/mainline/docs/reference/storyprovider/comic.py.md)
-  in the fork.
+- Comic sources: `comic_type` `"cah"`/`"garfield"` replaced by generic `"gocomics"`/`"arcamax"`
+  plus a `comic_name` field, so any comic hosted on either site works, not just those two. If you
+  use a `"comic"` source, update its config - see DOCS.md.
 
 ### Fixed
-- `gocomics.com`'s date-scoped comic URL now retries a few days back if the requested day's strip
-  isn't published yet (its own publish-rollover time/timezone isn't documented), instead of
-  failing outright every time generation happens to run earlier in the day than that rollover.
-- RSS-embedded article images are now decoded and re-encoded through Pillow (bounded dimensions,
-  normalized color mode, always JPEG) before embedding, the same defensive step comic strip
-  images already got - oversized photos, palette-mode PNGs, and WebP files (a format WeasyPrint's
-  image backend can't decode at all) were a known way for WeasyPrint to silently drop an image,
-  or sometimes an entire story, with no exception or log line. Verified live against a real daily
-  edition: fixed all but one of 53 previously-embedded images (upstream j6k4m8/goosepaper
-  [#142](https://github.com/j6k4m8/goosepaper/pull/142), not yet merged upstream).
-- A second, unrelated bug in the same area: `_make_urls_absolute` only stripped readability's
-  synthetic `<html><body>` wrapper from an extracted article body when it actually rewrote a URL
-  - an article whose links/images were already all absolute (common) leaked that wrapper straight
-  into the assembled newspaper HTML verbatim, and a second `<html>` tag appearing mid-document is
-  enough to confuse WeasyPrint's parser into silently dropping everything after it (upstream
-  j6k4m8/goosepaper [#141](https://github.com/j6k4m8/goosepaper/pull/141), not yet merged
-  upstream, follow-up to the already-merged
-  [#135](https://github.com/j6k4m8/goosepaper/pull/135)).
+- RSS article images are now normalized before embedding, fixing a range of images (and
+  sometimes whole stories) that could previously go missing from the PDF with no explanation.
+- A comic strip not yet published for "today" now falls back to the previous day's instead of
+  failing outright.
 
-### Known issue
-- Even with both fixes above, a very large, image-heavy daily edition can still lose the odd
-  story: verified live that this is a cumulative, document-wide WeasyPrint resource/layout limit,
-  not a single bad image or a single bug - a truncated version of the same (already-fixed)
-  document rendered stories correctly that the full edition still dropped. Not yet resolved;
-  likely needs a document-wide image weight budget or splitting very large editions rather than a
-  per-image fix.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/ff6671c...3c36e49)
 
 ## [1.7.3]
 
 ### Fixed
-- `goosepaper-logicpuzzles` bumped to `mainline@3fca97c`, picking up a follow-up fix for the
-  duplicate-headline stripping added in 1.5 (`fix/rss-duplicate-embedded-headline`, upstream
-  j6k4m8/goosepaper [#134](https://github.com/j6k4m8/goosepaper/pull/134)): the filter only ever
-  recognized a duplicated `h1`/`h2`/`h3` as the thing to strip. heise.de (all three heise sources)
-  auto-generates a table-of-contents widget at the top of every article
-  (`<a-collapse class="a-toc"><nav><ol><li><span aria-current="page">`) whose "current page" entry
-  holds the plain headline text with no heading tag at all - that text's own length blew the
-  filter's 40-character "preceding chrome" budget before it ever got a chance to recognize the
-  duplicate, so it went through untouched: headline rendered twice in the PDF, with a spurious
-  list bullet/number in front of the second copy. Confirmed live on two Tagesgoose editions
-  ("Amazon plant gigantisches Gaskraftwerk..." and "Daimler Truck setzt nach Gewinneinbruch...",
-  both heise pieces). The filter now matches any element (not just heading tags) whose full text
-  equals the headline, which also fixes stripping the *whole* offending wrapper instead of just
-  the innermost text node.
+- Some heise.de articles had their headline rendered twice in the PDF.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/3c0c0a3...ff6671c)
 
 ## [1.7.2]
 
 ### Fixed
-- `goosepaper-logicpuzzles` bumped to `mainline@bc73ef9`, picking up a follow-up fix for the
-  relative-URL resolution added in 1.6 (`fix/rss-relative-image-urls`, upstream j6k4m8/goosepaper
-  [#135](https://github.com/j6k4m8/goosepaper/pull/135)): protocol-relative image URLs
-  (`<img src="//host/path">`, seen in the wild in cgames.de/Gamestar RSS items) were mistakenly
-  treated as already-absolute (`urlparse().netloc` is truthy for them too, even without a scheme)
-  and left unresolved, so they later broke against the newspaper's `file://` base_url ("Failed to
-  load image at 'file://host/path': ... No such file or directory" in the log, images silently
-  missing from the PDF). Version bumped (not just the pin) specifically so the Supervisor store
-  picks this up and rebuilds promptly instead of waiting for its next periodic repository refresh.
+- RSS images linked with a protocol-relative URL (`//host/path`) could silently go missing from
+  the PDF.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/0b8b417...3c0c0a3)
 
 ## [1.7.1]
 
 ### Changed
-- `addon_config.json`'s per-newspaper `"retention": { "mode": "keep_last_n"|"keep_all",
-  "keep_last_n": N }` simplified to a flat `"retention_keep_last_n": N` (omit for no retention) -
-  matching goosepaper's own `DeliverySettings.retention_keep_last_n` field exactly. The `mode`
-  enum never carried information `keep_last_n` being set or not didn't already encode - the same
-  "optional int alone means on/off" shape already used for `min_body_text_length`/
-  `max_body_text_length` - so it only bought a redundant Pydantic validator
-  (`Retention._check_keep_last_n`, keeping the two fields consistent with each other) and a
-  translation step in `deliver.py` (`entry.retention.keep_last_n if entry.retention.mode ==
-  "keep_last_n" else None`) collapsing them back into the one bit of information goosepaper's own
-  `upload()` actually wants. `config_schema.py`'s `Retention` class is gone; `scheduler.py`'s
-  startup overview log output is unchanged ("retention: keep last N" / "retention: keep all").
-  `addon_config.json` migrated - both shipped example and the maintainer's own live one - and
-  verified: `load_addon_config()` parses correctly, the startup overview log renders correctly,
-  and a real generation via `preview.sh` still succeeds.
+- `addon_config.json`'s per-newspaper retention setting is simpler: `"retention": {"mode": ...,
+  "keep_last_n": ...}` is now just `"retention_keep_last_n": N` (omit for no retention). Update
+  your own `addon_config.json` if you use retention.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/c75d217...0b8b417)
 
 ## [1.7.0]
 
 ### Changed
-- **`*.goosepaper.json` files are now parsed entirely by goosepaper itself**
-  (`goosepaper.config.load_paper_config()` + `construct_story_providers_from_source_configs()`),
-  not by this add-on's own Pydantic schema. `config_schema.py` shrank to just the addon-config
-  layer (`addon_config.json`'s schedule/folder/retention) - the parallel copy of goosepaper's own
-  source-type schema (`RSSSource`/`WikipediaSource`/`WeatherSource`/`PuzzleSource`/`ComicSource`/
-  `Section`/`PaperOptions`/`GoosepaperConfig`) is gone. This existed in the first place because
-  goosepaper's own declarative config format couldn't express several things this add-on needed
-  (`min_body_text_length`/`max_body_text_length`, a `"section"` tag, this add-on's own retention
-  concept) - those gaps are closed upstream now (mainline's README "About this fork" table has
-  the PRs), so duplicating goosepaper's own schema here no longer buys anything, only risks the
-  two drifting apart.
-- `deliver.py`'s `auth_client()` monkeypatch (working around goosepaper's own `auth_client()`
-  hardcoding `interactive=True`, crashing with an uncaught `EOFError` in this headless container)
-  is gone - `interactive` is a real parameter on goosepaper's `auth_client()`/`upload()` now (see
-  mainline's README, PR #137), passed as `interactive=False` directly. The remarkapy
-  `schemaVersion` monkeypatch stays (not yet fixed upstream, see
-  [remarkapy#24](https://github.com/j6k4m8/remarkapy/issues/24)).
-- `deliver.py`'s own `_cleanup_old_editions` (hand-rolled remarkapy folder scan/delete for
-  `retention.mode: "keep_last_n"`) is gone - `upload()` now does this natively via
-  `retention_keep_last_n`/`retention_prefix` (mainline's README, PR #136).
-- **Every `*.goosepaper.json` file - both shipped examples and the maintainer's own live
-  newspapers (`tagesgoose`, `julian`, `raetselheft`) - migrated to goosepaper's native schema**,
-  since the add-on no longer translates between the two:
-  - Top-level `"sections": [{"title": ..., "sources": [...]}]` flattened to `"sources": [...]`
-    with an optional `"section"` tag on each source (goosepaper's own grouping mechanism, PR
-    #132) - same rendered grouping, different JSON shape.
-  - `"max_age_days"` → `"since_days_ago"`, `"content_skip_filters"` → `"skip_content_filters"`,
-    `"content_accept_filters"` → `"accept_content_filters"` on `"rss"` sources - this add-on used
-    friendlier field names than `RSSFeedStoryProvider`'s own and translated silently; no
-    translation layer left to do that, so the JSON itself now uses goosepaper's real names.
-  - `"weather"` sources: `"units": "celsius"/"fahrenheit"` → `"unit": "C"/"F"` - different key
-    *and* different value vocabulary.
-  - A `"name"` field on `"rss"`/`"wikipedia"`/`"weather"` sources is no longer accepted -
-    goosepaper's native schema doesn't have it there (it was purely a decorative label in this
-    add-on's schema, never passed to the provider - except for `"weather"`, see the known
-    limitation below). Removed from every source of those types. `"name"` is unaffected on
-    `"puzzle"` sources - goosepaper's schema accepts it natively there too, unchanged.
-  - Every file now declares `"version": 2` at the top level, required by goosepaper's own loader
-    (this add-on never required or even read this field before).
-  - Verified: all six files parse via `load_paper_config()` and build providers via
-    `construct_story_providers_from_source_configs()` without error; the three live newspapers
-    each regenerated successfully against real, currently-live feeds.
+- `*.goosepaper.json` newspaper files now use goosepaper's own native format directly instead of
+  this add-on's translated one. **Existing newspaper files need migrating** - see DOCS.md for the
+  new field names (`sections` → `sources` + `section` tag, `max_age_days` → `since_days_ago`,
+  weather `units` → `unit`, and a required top-level `"version": 2`).
 
-### Known limitation
-- A `"weather"` source's `"name"` used to prefix its headline (`SectionProvider`'s
-  `headline_prefix`, e.g. "Berlin: 21°/9°") so multiple weather sources in one paper could be
-  told apart. Goosepaper's native config-driven pipeline has no declarative equivalent for
-  `headline_prefix` for any source type, so this is gone - headlines are now the bare weather
-  summary (e.g. "21°/9°"). Every current newspaper (shipped examples and the maintainer's own)
-  has exactly one weather source, so this has no visible effect today; only matters if a future
-  paper adds a second one.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/103889f...c75d217)
 
 ## [1.6.3]
 
 ### Changed
-- `max_body_text_length` raised from `4000` to `8000` (~2 pages instead of ~1) on every `"rss"`
-  source in both shipped examples and the maintainer's own live newspapers - re-verified
-  empirically the same way as the original value: still lands within 2 pages at `paper_pro`/
-  `font_size: 9` (checked 7800-8400 chars, all render as exactly 2 pages), and re-checked against
-  real `tagesgoose` feeds - 111 stories kept, longest surviving one 7851 characters, none over
-  8000.
+- Default max RSS article length raised (~1 page to ~2 pages per story).
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/2738684...103889f)
 
 ## [1.6.2]
 
 ### Removed
-- The `defaults` block introduced in 1.6.0/1.6.1 (`config_schema.py`'s `Defaults` model, its
-  `min_body_text_length`/`max_body_text_length` merge in `deliver.py`'s `_build_provider`).
-  Reconsidered after a closer look: this was an addon-only abstraction with no equivalent in
-  goosepaper's own native config schema (which has no "defaults" concept at all - every source is
-  always specified individually there). A per-source-type defaults mechanism is arguably useful
-  in general (`byline`/`body_source` are just as repetitive across sources as the two length
-  fields were), but if it's worth having, it belongs in goosepaper itself where every user
-  benefits - not duplicated here as addon-only scope creep. `RSSSource.min_body_text_length`/
-  `max_body_text_length` are unaffected (still per-source, optional, unchanged) - only the
-  newspaper-wide fallback is gone.
-- `min_body_text_length: 120`/`max_body_text_length: 4000` are now set explicitly on every `"rss"`
-  source in both shipped examples and the maintainer's own live newspapers, instead of once via
-  `defaults` - same effective values as 1.6.0/1.6.1, just spelled out per source rather than
-  inherited. `raetselheft` and `puzzle-booklet` had the now-removed `defaults` key dropped too
-  (neither has any `"rss"` sources for it to have applied to).
+- The newspaper-wide `defaults` block for article-length limits - set `min_body_text_length`/
+  `max_body_text_length` per `"rss"` source instead (same effect, simpler config). Existing
+  shipped examples and configs already migrated.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/78153ea...2738684)
 
 ## [1.6.1]
 
 ### Fixed
-- `min_body_text_length`/`max_body_text_length` and the `defaults` block were entirely
-  undocumented - zero mentions across README.md/DOCS.md/DEVELOPMENT.md/CONTRIBUTING.md, and no
-  explanatory comments on `RSSSource`'s two fields or the `Defaults` model itself (unlike every
-  other field in `config_schema.py`). Found while double-checking whether the `defaults`
-  mechanism needed to go into the upstream PR for the per-source fields (it doesn't - `defaults`
-  is a pure addon-side wrapper concept, goosepaper's own native schema has no such thing). Added
-  to DOCS.md's "Configuration: two layers" example, plus docstrings on both spots in
-  `config_schema.py`: the `defaults` block applies per newspaper file, not addon-wide; a source's
-  own value always overrides it; `min_body_text_length` defaults to `120` even if `defaults` is
-  omitted entirely, `max_body_text_length` has no built-in default.
+- The `min_body_text_length`/`max_body_text_length`/`defaults` options are now actually
+  documented in DOCS.md (previously only worked if you already knew they existed).
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/6481e96...78153ea)
 
 ## [1.6.0]
 
 ### Added
-- `defaults.max_body_text_length` in a `*.goosepaper.json` file's top-level `defaults` block -
-  mirrors the existing `defaults.min_body_text_length`, applying a shared cap to every `"rss"`
-  source that doesn't set its own `max_body_text_length` (a per-source override already existed
-  on `RSSSource`, but `Defaults` and `deliver.py`'s merge logic only ever knew about the minimum
-  side - `config_schema.py`'s `Defaults` model didn't have the field at all, so it wasn't even
-  possible to set this via `defaults`, only per source).
-- Set to `4000` in both shipped examples (`world-news`, `tech-weekly`) and both of the
-  maintainer's own live newspapers with RSS sources (`tagesgoose`, `julian` - `raetselheft` has
-  none). Chosen empirically, not guessed: rendered a single placeholder story through the real
-  pipeline (`page_profile: paper_pro`, `font_size: 9`, 2-column layout) for both `FifthAvenue` and
-  `Autumn` (the two styles actually in use) and binary-searched for where it just spills onto a
-  second page - landed at ~4000-4100 visible characters for both styles, so one shared value
-  works across both. Verified against real, currently-live feeds (not synthetic text): with the
-  limit off, 31 of 115 fetched `tagesgoose` stories exceeded 4000 characters (up to 38,400 from a
-  single InfoQ conference-talk writeup); with it on, the longest surviving story was 3,997.
+- A `*.goosepaper.json` file can now set a shared max RSS article length for the whole newspaper
+  via a `defaults` block, instead of repeating it on every source.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/e0c7395...6481e96)
 
 ## [1.5.0]
 
-### Added
-- `fonts-noto-color-emoji` in the Dockerfile: `fonts-dejavu-core`/`fonts-liberation` (the only
-  fonts previously installed) have no emoji glyphs, so any emoji in RSS-sourced article text
-  rendered as an empty tofu box in the PDF - confirmed in production logs from the 1.4 run. This
-  only affects this add-on's own Docker image, not `goosepaper-logicpuzzles` or regular
-  goosepaper usage generally, so it's fixed here rather than upstreamed.
-  - Corrects an earlier assumption made while scoping this fix: there is no monochrome
-    `fonts-noto-emoji` Debian package - `fonts-noto-color-emoji` is the only Noto emoji font
-    Debian actually packages, confirmed by searching the archive directly rather than guessing
-    from the upstream GitHub repo's file layout.
-  - Verified locally before shipping: downloaded the exact `.deb` Debian bookworm ships
-    (`fonts-noto-color-emoji_2.042-0+deb12u1_all.deb`, matching this image's base), extracted the
-    real font file, and rendered a test PDF with WeasyPrint 68.1 (the pinned version) using an
-    isolated fontconfig setup that only exposes the same three font packages this Dockerfile
-    installs - macOS's own emoji font was excluded so the test couldn't accidentally pass for the
-    wrong reason. First attempt rendered emoji at wildly oversized, layout-breaking dimensions -
-    traced to a missing `10-scale-bitmap-fonts.conf` fontconfig rule (a known fix for
-    CBDT/CBLC-format color bitmap fonts, standard in fontconfig >=2.13.1). Confirmed
-    `libpangoft2-1.0-0` (already in this Dockerfile) depends on `libfontconfig1` ->
-    `fontconfig-config`, which ships that rule by default - so no extra Dockerfile line is needed
-    for it, and the real container isn't expected to hit the oversized-glyph problem seen in the
-    deliberately minimal test config. Re-tested with the rule included: emoji render correctly
-    sized, inline with body text. See DEVELOPMENT.md's "Assets" section for the font's actual
-    license (SIL OFL 1.1, verified from Debian's own package metadata).
-  - Trade-off: each emoji is now an embedded color bitmap rather than absent, so generated PDFs
-    with emoji-heavy content will be somewhat larger; the font itself adds ~11 MB to the image.
-  - Known limitation: some multi-codepoint ZWJ sequences (e.g. the four-person family emoji) render
-    as separate component glyphs side by side rather than one combined glyph - a limitation of this
-    font build, not of the fix. Simple emoji, flags, and skin-tone modifiers all render correctly.
+### Fixed
+- Emoji in RSS article text no longer render as empty boxes in the PDF.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/0ddb05a...e0c7395)
 
 ## [1.4.1]
 
-Version-only bump, no functional changes - forces Supervisor to notice the LICENSE/icon/logo/
-CONTRIBUTING.md work below, which shipped without a version change and so wasn't detected as an
-update (see AGENTS.md's "Versioning and git tags" - this is exactly the patch-bump case it
-describes: no new git tag for this one, `v1.4.0` stays the reference point).
+Patch bump, no user-visible behavior change - ships packaging work (LICENSE/icon/logo) from 1.4.0
+that Supervisor hadn't picked up yet.
 
 ### Removed
-- `hassio_api: true` and the pairing-code self-clear it enabled (1.4.0's "Added" entry above) -
-  rolled back after an aggressive-complexity review. The actual problem (a one-time code sitting
-  visibly in Configuration) was already solved by masking the field as `password`; auto-clearing
-  it on top was cosmetic-only polish bought with an elevated Supervisor permission, a runtime
-  network dependency, and ~30 lines of code. `remarkable_pairing_code` no longer clears itself -
-  it's still masked, and still single-use regardless, so an old value sitting there is harmless.
+- The pairing code no longer auto-clears itself after use - it's still masked in the
+  Configuration tab, and still single-use regardless, so this only affects whether the old value
+  stays visible.
 
-### Fixed
-- `deliver.py` and `scheduler.py` each independently re-implemented the same "resolve
-  `goosepaper_config` relative to `addon_config.json`'s directory" logic - now lives once, in
-  `config_schema.resolve_goosepaper_config_path()`.
-- `scheduler.py` had three separate call sites independently reading and error-handling
-  `/data/options.json` - consolidated into one `_read_options()` helper.
-- `config_schema.py`'s `schedule` field comment said "informational until this is containerized"
-  - stale since the add-on *is* the container, and `CronTrigger.from_crontab()` reads this field
-  for real.
-- `CONTRIBUTING.md` pointed at `generic_filters.py` as a good place to add tests; that file no
-  longer exists (removed when the fork absorbed its functionality natively) - now points at
-  `config_schema.py` instead.
-- `CONTRIBUTING.md`'s "Development Setup" duplicated `DEVELOPMENT.md`'s "Running locally"
-  instructions nearly verbatim - now links to it instead of repeating the commands.
-- `config_schema.py`'s module docstring pointed at `../goosepaper-fork/...` for the upstream RSS
-  provider source - that directory has never existed under that name; the actual sibling checkout
-  is `goosepaper-logicpuzzles`.
-- `DOCS.md`'s "Configured newspapers" example log block still showed the maintainer's old
-  personal newspaper names (`tagesgoose`, plus a mismatched `julian`/`Techweekly` leftover) rather
-  than the actual shipped examples (`world-news`/`tech-weekly`/`puzzles`).
-- `AGENTS.md` pointed at "the Roadmap section in `README.md`" - it lives in `DEVELOPMENT.md`;
-  README.md has no Roadmap section at all.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/c7006a6...0ddb05a)
 
 ## [1.4.0]
 
 ### Added
-- `LICENSE` (Apache License 2.0) — matches the whole dependency chain (both
-  `goosepaper-logicpuzzles` and `remarkapy` are already Apache-2.0), also added to
-  `pyproject.toml`'s `license` field.
-- `icon.png`/`logo.png` — the "newspaper" symbol from Google's Material Symbols (Apache-2.0),
-  recolored; the add-on store previously showed a generic default icon. See DEVELOPMENT.md's
-  "Assets" section for attribution.
-- `CONTRIBUTING.md`, matching the maintainer's usual template across their other repos.
-- README.md now states up front that this is a Home Assistant add-on, rather than only implying
-  it later in the Installation section.
-- Reworked the seeded example newspapers into three more realistic, distinct examples instead of
-  a single generic "Daily News": **World News** (daily - BBC Politics/Business, CNBC, Garfield,
-  Wikipedia, Berlin weather), **Tech Weekly** (weekly - The Verge/Ars Technica/TechCrunch/Wired/
-  Engadget/The Register/Hacker News/InfoQ/GitHub Blog/Stack Overflow Blog/Dev.to, XKCD), and an
-  expanded **Puzzle Booklet** (weekly - all 5 puzzle types at all 3 difficulties, 15 sections, up
-  from 5). Verified end-to-end locally (`deliver.py`, no `--deliver`) - all three render cleanly.
-- `hassio_api: true`: once a configured `remarkable_pairing_code` is successfully redeemed, the
-  add-on now clears it back to empty via Supervisor's own API — a pairing code is single-use, so
-  leaving the old one sitting in Configuration afterward looked reusable when it wasn't.
-- `generation_log_level` option: sets the minimum log level for everything involved in actually
-  generating an edition (WeasyPrint/font rendering, httpx's per-request logging, the scheduler
-  library) — defaults to `warning`, since that output was burying this add-on's own `Honk!`
-  messages under dozens of unrelated lines per edition. Those messages always show regardless of
-  this setting, since they're on their own logger, pinned to `info` independent of the option.
-- The startup "Configured newspapers" log now also shows each newspaper's resolved
-  `*.goosepaper.json` path, and a note clarifying that file is reloaded fresh on every scheduled
-  run (no restart needed to edit it) while `addon_config.json` itself needs a restart to pick up
-  schedule/id/enabled changes.
-- `_run_newspaper` now logs a "Finished scheduled generation" line on completion, not just on
-  trigger/failure — a clear per-run end marker now that the underlying generation libraries'
-  own completion chatter is filtered out by default.
-- README.md now has an actual Installation section: a "My Home Assistant" one-click badge that
-  opens the add-on store with this repository pre-filled, plus the manual
-  Settings → Add-ons → Add-on Store → Repositories steps as a fallback.
-
-### Changed
-- `remarkable_pairing_code`'s schema type is now `password` instead of `str`, so the Configuration
-  tab masks it like any other secret instead of leaving a one-time code sitting there in plain
-  text after it's been entered and saved.
+- A proper add-on icon/logo and an Installation section in the store listing.
+- `generation_log_level` option to quiet down noisy generation logs (defaults to `warning`).
+- The reMarkable pairing code field is now masked like a password.
 
 ### Fixed
-- `goosepaper.auth.auth_client()` (used for every reMarkable upload and retention cleanup, not
-  just the startup pairing check) built its `Client` with remarkapy's `interactive=True` default —
-  if a device token went missing after startup, that fell into an interactive `input()` pairing
-  wizard, which just raised an uncaught `EOFError` in this container (no stdin) instead of the
-  clean "Honk! Authentication failed" every caller already handles. Seen in production logs on an
-  add-on that had never completed pairing. Now patched to `interactive=False` everywhere, matching
-  what the startup check already guaranteed.
-- `PYTHONUNBUFFERED=1`: the `goosepaper` dependency's own delivery messages ("Honk! Upload
-  successful!" etc.) use `print()`, not `logging` - `logging`'s `StreamHandler` flushes after
-  every record, but plain `print()`s stdout is block-buffered (not line-buffered) once it's piped
-  rather than a TTY, which is always true under Docker. Without this, those messages could sit in
-  the buffer for hours and only surface at the next restart - looking like they'd just happened
-  when they were actually from a run hours earlier. Verified empirically: redirected stdout stays
-  empty ~150ms after a `print()` without this set, appears immediately with it.
-- `watchdog: true` (briefly added, now removed) turned out to use the wrong type - Supervisor's
-  actual schema wants a URL/port template (`"tcp://[HOST]:[PORT]"` etc.) to actively health-check,
-  not a boolean "restart on exit" toggle. Broke `config.yaml` parsing entirely - confirmed via
-  Supervisor's own logs (`Can't read .../config.yaml: expected string or buffer for dictionary
-  value @ data['watchdog']. Got True`) - which made every add-on in this repository disappear
-  from the store (not just show stale) for as long as it was live. Removed outright rather than
-  given a real target: this add-on has no listening port (headless scheduler, no `network`/
-  `ingress`/`webui`), so there's nothing valid to health-check in the first place - saving a
-  pairing code while the add-on is stopped needs a manual restart again, same as before 1.2.0.
+- Pairing no longer crashes the add-on if a device token goes missing after startup.
+- Delivery log messages ("Honk! Upload successful!") now show up immediately instead of being
+  delayed, sometimes for hours.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/30fe250...c7006a6)
 
 ## [1.3.0]
 
 ### Added
-- `max_body_text_length` on `"rss"` sources (mirrors the existing `min_body_text_length`): drop
-  stories whose extracted body is implausibly long — e.g. a hardware review with a huge photo
-  gallery — instead of letting a single outlier balloon a whole edition.
+- RSS sources can now cap maximum article length too (`max_body_text_length`), so one
+  unusually long article can't balloon a whole edition.
 
-### Changed
-- `deliver.py`'s monkeypatches (RSS encoding fallback, per-entry RSS error handling, preferring
-  the feed's own title over readability's, cross-source deduplication, and clean PDF bookmark
-  levels) are gone — the same behavior is now native in the `goosepaper-logicpuzzles` fork
-  itself, upstreamed from this add-on's own wrapper code. No behavior change; only the
-  minimum/maximum-body-length safety net and section grouping remain wrapper-level concerns,
-  since both depend on this add-on's own config schema.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/ab2f633...30fe250)
 
 ## [1.2.0]
 
 ### Changed
-- Startup pairing check now **refuses to start** if there's no usable reMarkable pairing at all
-  (no token, and no working `remarkable_pairing_code` either), instead of only warning and then
-  scheduling newspapers that could only fail on delivery — previously it logged a warning but
-  still set up cron jobs and kept running. A transient verification error against an
-  already-paired token (e.g. a network hiccup at boot) still does not block startup, only a
-  genuinely missing/unusable pairing does.
+- The add-on now refuses to start if your reMarkable isn't properly paired, instead of starting
+  anyway and only failing later when it tries to deliver.
 
-### Added
-- `translations/en.yaml` + `de.yaml`: the Configuration tab's `remarkable_pairing_code` field now
-  has a friendly name and explanatory text (what it's for, where to get a code, and that it's
-  only needed once or again after switching reMarkables) instead of just the bare option key.
-- Startup "Configured newspapers" log summary: one line per newspaper (id, title, enabled state,
-  cron schedule, reMarkable folder, retention policy, most recent local PDF) under the Log tab —
-  a read-only overview of `addon_config.json` without needing a file editor. DOCS.md's new
-  "Editing your configuration" section covers how to actually reach/edit the config files
-  (Studio Code Server or Samba — there's no in-app editor on the Configuration tab).
-
-### Fixed
-- `config.yaml`'s `map:` used the deprecated `addon_config:rw`; switched to `app_config:rw`,
-  matching Supervisor's in-progress "add-on → app" rename (the old value still works today but
-  logs a "legacy map type" warning on every load).
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/791d6ad...ab2f633)
 
 ## [1.1.0]
 
 ### Added
-- GUI-based reMarkable pairing: enter an 8-character pairing code directly under the add-on's
-  Configuration tab (`remarkable_pairing_code`) instead of needing shell/SSH access.
-- Startup pairing check: verifies (with a real API call, not just "does a token file exist")
-  whether reMarkable pairing works every time the add-on starts, and logs a clear warning if it's
-  missing or invalid — newspaper generation still worked without it at this point, only
-  reMarkable delivery needed it (tightened to a hard startup failure in 1.2.0).
-- New `"comic"` source type: embeds today's XKCD, Calvin and Hobbes, or Garfield strip as an
-  image story.
+- Pair your reMarkable directly from the add-on's Configuration tab - no more shell/SSH access
+  needed.
+- New `"comic"` source type: embeds today's XKCD, Calvin and Hobbes, or Garfield strip.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/a44ee2c...791d6ad)
 
 ## [1.0.0]
 
-Initial release.
+Initial release: generates newspaper PDFs from RSS feeds, Wikipedia, weather, and puzzles,
+delivered to a reMarkable tablet. Auto-seeds example newspapers on first install.
 
-### Added
-- Home Assistant add-on packaging: `config.yaml`, `repository.yaml`, and the Dockerfile labels
-  (`io.hass.version`/`io.hass.type`/`io.hass.arch`) Supervisor requires.
-- Auto-seed: a fresh install with an empty `/config` is seeded with sanitized example newspapers
-  on first start, so it produces a working PDF before any manual configuration.
-- SIGTERM handling for clean shutdown; migrated logging from `print()` to Python's `logging`
-  module throughout.
-- Friendly startup errors for a malformed `addon_config.json` (a clear one-line log message)
-  instead of a raw traceback.
-- `content_accept_filters`/`accept_title_patterns` on `"rss"` sources — the allowlist
-  counterparts to the existing `content_skip_filters`/`skip_title_patterns` — wired through from
-  the fork.
-
-### Fixed
-- The Dockerfile depended on `libgdk-pixbuf-xlib-2.0-0`, a deprecated package that only worked
-  because it transitively pulls in the real library WeasyPrint needs; switched to depending on
-  `libgdk-pixbuf-2.0-0` directly.
-- `.dockerignore` now excludes `config/` and `data/`, so real personal config or a paired
-  reMarkable token can never end up baked into an image layer.
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/dcc4695...a44ee2c)
