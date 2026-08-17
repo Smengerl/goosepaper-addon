@@ -3,6 +3,43 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.7]
+
+### Changed
+- `goosepaper-logicpuzzles` bumped to `mainline@a467723` (nine commits since the `1.7.6` pin,
+  `mainline@4035f15`) - image transcoding moved out of the individual story providers and into a
+  single render-time pass:
+  - `RSSFeedStoryProvider` and `DailyComicStoryProvider` no longer each re-encode images
+    themselves against a hardcoded, guessed 1200px constant. `Goosepaper._render_html_document()`
+    now does this once, for every story regardless of source, sizing the cap off the *actual*
+    `page_profile`/column layout being rendered (content width ÷ columns × 200 DPI) instead of a
+    single flat guess. Verified upstream against the maintainer's real `tagesgoose` config (26 RSS
+    feeds + XKCD + puzzles + weather/wikipedia): identical story/page counts and the same 50/54
+    successfully-inlined images as before, but total embedded image payload roughly halved
+    (5.92MB -> 2.93MB) at this add-on's own `paper_pro`/2-column profile, no visible quality loss.
+  - Fixes an HTML-attribute-injection hole in `comic.py`: a comic source page whose `src`
+    attribute contained a decoded `"` could break out of the `<img src="...">` f-string and inject
+    arbitrary markup (an `onerror` attribute was reproduced surviving into rendered output).
+    `image_url` is now escaped the same way `alt_text` already was.
+  - Per-story failure isolation (one story's image-processing exception can't take the whole
+    render down) now covers the new render-time loop and `to_epub()` as well - previously
+    `to_epub()` never called the image-inlining step at all, so it got zero image processing.
+
+### Fixed
+- A leading `<style>` block (the shape every comic story's `body_html` starts with) no longer gets
+  silently dropped by `_inline_story_images()` - lxml relocates a bare top-of-fragment `<style>`
+  tag into an implied `<head>` while parsing, which a prior version of this pass didn't account
+  for; every comic story was losing its centering/caption CSS once its image got inlined.
+
+### Known issue
+- This does not change how a source page's own malformed markup is handled: `_make_urls_absolute`
+  (unchanged by this bump) extracts and absolutizes whatever is actually in an `<img src>`
+  attribute without validating its content. A source site serving garbage there (confirmed live
+  against `cst.cam.ac.uk`, which has a duplicated `<img>` tag with another tag's raw markup pasted
+  into its own `src`) still produces a 404 in the log and a remote-link fallback for that one
+  image - a bug on the source page, not something this add-on or the fork can reasonably work
+  around by guessing at broken HTML.
+
 ## [1.7.6]
 
 ### Changed
