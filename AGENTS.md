@@ -114,7 +114,13 @@ touches, every time - not as a separate cleanup pass later:
 - **`CHANGELOG.md`** - every feature or user-visible change gets an entry under the version it
   shipped in, written at the same time as the `config.yaml` version bump (same commit, or the
   same small group of commits). If there's no entry for the version you just bumped to, the bump
-  isn't finished yet.
+  isn't finished yet. **Write for the add-on's users, not for a developer reading the code** - a
+  couple of sentences on what changed and why it matters to someone running this add-on (does
+  their generated PDF look different, does a log line change, do they need to do anything), not a
+  walkthrough of the fork's internal commits, function names, or code paths. For anyone who wants
+  that level of detail, link the actual commit(s)/PR(s) instead of writing the detail out inline -
+  `goosepaper-logicpuzzles`@`<short-sha>` or a GitHub commit/PR URL - the repo history already has
+  the full story, the changelog doesn't need to duplicate it.
 - **`README.md`** - user-facing, not developer-facing. Home Assistant shows this file **verbatim**
   as the add-on's `long_description` in the Add-on Store (confirmed via `ha_get_addon`'s API
   response) - anyone browsing the store sees exactly what's in this file, not just GitHub
