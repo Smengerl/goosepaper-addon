@@ -3,6 +3,26 @@
 All notable changes to this add-on are documented here, grouped by the `config.yaml` version
 they shipped in.
 
+## [1.7.8]
+
+### Fixed
+- `goosepaper-logicpuzzles` bumped to `mainline@4ea3bb5`, picking up one follow-up fix for the
+  render-time image sizing work in `1.7.7`: an image that fails to inline (fetch error, decode
+  error, non-image response, ...) is now removed from the story instead of being left as a dead
+  `http(s)://` link. Leaving it in place meant WeasyPrint's own image loader tried - and failed -
+  to fetch the exact same URL a second time while actually rendering the PDF, so one failure
+  produced two log lines (this add-on's own `"Sad honk :/ Failed to inline image"` and
+  WeasyPrint's own `"Failed to load image at ...: HTTPError"`) plus a wasted second network
+  request. Now: one log line, no WeasyPrint error, and the story's other content (including any
+  other, correctly-formed image in the same article) still renders normally.
+  - Directly addresses the `1.7.7` changelog's "Known issue": verified live against the same
+    `cst.cam.ac.uk` article (a duplicated `<img>` tag on their own page whose `src` contains
+    another tag's raw markup, always 404s) - this is still a bug on that source page, not
+    something this add-on can fix at the root, but it no longer produces confusing double
+    log output or a second doomed fetch when it happens. Filed upstream as
+    [j6k4m8/goosepaper#145](https://github.com/j6k4m8/goosepaper/pull/145) (comment), not yet
+    merged.
+
 ## [1.7.7]
 
 ### Changed
