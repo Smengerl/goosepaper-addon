@@ -14,7 +14,7 @@ full technical story behind any entry, follow its commit-history link.
   to keep the previous English behavior - every installation may want a different language, so
   nothing is forced. See DOCS.md's "Language for date stamps" section.
 
-[Commits](https://github.com/Smengerl/goosepaper-addon/compare/71954a4...HEAD)
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/71954a4...8b63c9c)
 
 ## [1.8.0]
 
