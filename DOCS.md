@@ -133,8 +133,8 @@ from any other add-on that mounts it — see Installation above): `addon_config.
 newspapers exist, their schedule, reMarkable folder, retention) and each newspaper's own
 `*.goosepaper.json` (its sections, sources, paper look). There's no in-app editor for these on
 the Configuration tab — Supervisor's Options UI only renders the schema fields under `options:`
-in `config.yaml` (currently `remarkable_pairing_code` and `generation_log_level`), nothing
-file-based. Reach the files instead with another add-on:
+in `config.yaml` (currently `remarkable_pairing_code`, `generation_log_level`, and `locale`),
+nothing file-based. Reach the files instead with another add-on:
 
 - **Studio Code Server** (Community add-on) — mounts every add-on's config folder automatically,
   no setup needed. Once installed, `goosepaper`'s files just show up in its file tree alongside
@@ -204,3 +204,19 @@ enough to bury the `Honk!` lines under dozens of unrelated ones per run. **`gene
 (Settings → Add-ons → Goosepaper → Configuration) sets the minimum level for that underlying
 noise; it defaults to `warning` to keep the log readable. Set it to `debug` or `info` temporarily
 when you actually need that detail, e.g. tracking down why a specific RSS entry got skipped.
+
+## Language for date stamps
+
+A newspaper's `paper.datetime_format` (see `*.goosepaper.json`, e.g. `"%-d. %B %Y"`) can spell
+out the month/weekday name via strftime's `%B`/`%A`. By itself that always renders in English —
+Python doesn't know which language you want unless told. The **`locale`** add-on option
+(Settings → Add-ons → Goosepaper → Configuration) tells it: set it to a bare glibc locale
+identifier, e.g. `de_DE` for German (`"22. August 2026"`, `"15. Januar 2026"`) or `fr_FR` for
+French, and restart the add-on. Leave it empty (the default) to keep English month/weekday names
+— every installation of this add-on may want a different language, so nothing is forced.
+
+The add-on generates the requested locale itself on startup (there's no way to know in advance
+which of the ~800 glibc locales any given installer will want, so none are pre-built into the
+image). An invalid or unsupported identifier logs a warning under the Log tab and falls back to
+English rather than blocking startup — check `Honk! Could not generate locale` there if your
+date stamps aren't showing up translated.

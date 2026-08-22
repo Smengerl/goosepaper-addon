@@ -38,12 +38,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fonts-noto-color-emoji \
         ca-certificates \
         git \
+        locales \
     && rm -rf /var/lib/apt/lists/*
+# `locales` ships the source templates for every glibc locale under /usr/share/i18n/locales/, but
+# none are pre-generated - that happens on demand at container startup, driven by the `locale`
+# add-on option (see entrypoint.sh), not baked in here. This add-on has users other than its
+# author, and they won't all want German %B/%A month/weekday names - baking in one language (or
+# every language via locales-all, ~30-50MB for languages nobody asked for) would be wrong either
+# way.
 
 RUN pip install --no-cache-dir uv
 
 WORKDIR /build/goosepaper-addon
 COPY . .
+RUN chmod +x entrypoint.sh
 
 # --frozen: build against the exact goosepaper commit pinned in uv.lock, not whatever mainline
 # has moved to since - re-run `uv lock` locally and commit the result to pick up fork updates.
@@ -65,4 +73,4 @@ ENV HOME=/data \
 
 VOLUME ["/config", "/data"]
 
-ENTRYPOINT ["python", "scheduler.py"]
+ENTRYPOINT ["./entrypoint.sh"]

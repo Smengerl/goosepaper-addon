@@ -4,6 +4,18 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.9.0]
+
+### Added
+- New **`locale`** add-on option (Settings → Add-ons → Goosepaper → Configuration) controls what
+  language written-out month/weekday names render in when a newspaper's `datetime_format` uses
+  `%B`/`%A` (e.g. `"%-d. %B %Y"` → "22. August 2026" with `locale` set to `de_DE`). Previously
+  this always rendered in English regardless of the format string. Leave it empty (the default)
+  to keep the previous English behavior - every installation may want a different language, so
+  nothing is forced. See DOCS.md's "Language for date stamps" section.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/71954a4...HEAD)
+
 ## [1.8.0]
 
 ### Added

@@ -23,12 +23,19 @@ What's left as a genuine wrapper concern:
    `*.goosepaper.json` file) into calls against goosepaper's own `Goosepaper`/`upload()` - the
    multi-newspaper orchestration layer goosepaper itself doesn't have (it's designed around one
    config file per invocation).
+3. `configure_locale()`, driven by the `locale` add-on option (see config.yaml/scheduler.py), so
+   a `datetime_format` like "%-d. %B %Y" (see tagesgoose.goosepaper.json) renders "22. August"
+   and "15. Januar" instead of "15. January" the eleven months that aren't a German/English
+   coincidence. goosepaper's own `datetime_format` is a plain `strftime()` pass-through by design
+   (see its PR) - which human language that renders in is this add-on's call, and each installer
+   gets to make it for themselves via the option, not a hardcoded language baked in for everyone.
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime
+import locale
 import logging
 import pathlib
 import sys
@@ -39,6 +46,36 @@ import remarkapy.client as _rc_client
 import config_schema
 
 logger = logging.getLogger("goosepaper-addon")
+
+
+def configure_locale(name: Optional[str]) -> None:
+    """Best-effort `setlocale(LC_TIME, ...)` so a paper's `datetime_format` (e.g. "%-d. %B %Y")
+    renders %B/%A in the requested human language instead of Python's default "C" locale (always
+    English, regardless of the container's LANG/LC_ALL env vars - those alone don't affect
+    strftime() unless something calls setlocale() explicitly).
+
+    `name` is a bare locale identifier like "de_DE" (the add-on's `locale` option / this script's
+    `--locale` flag) - `.UTF-8` is appended here. None/empty is a deliberate no-op: this add-on
+    has users other than its author, so nothing should be forced by default, and the process
+    keeps whatever locale it already had. Never raises - an unavailable/invalid locale name
+    (e.g. not yet generated, see scheduler.py's _configure_locale() for the container path) logs
+    a warning and leaves date stamps in whatever locale was already active, rather than aborting
+    newspaper generation over a cosmetic string.
+    """
+    if not name:
+        return
+    locale_value = f"{name}.UTF-8"
+    try:
+        locale.setlocale(locale.LC_TIME, locale_value)
+        logger.info("Honk! Using %s for date/time formatting.", locale_value)
+    except locale.Error as err:
+        logger.warning(
+            "Honk! Could not enable locale %r (%s) - date stamps will use whichever locale was "
+            "already active.",
+            locale_value,
+            err,
+        )
+
 
 # --- generic, always-on monkeypatch ------------------------------------------------------------
 # Still needed - see module docstring, point 1 (https://github.com/j6k4m8/remarkapy/issues/24).
@@ -167,7 +204,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--output", default="output", help="Directory for generated PDFs.")
     parser.add_argument("--deliver", action="store_true", help="Upload to reMarkable after generating.")
     parser.add_argument("--newspaper", default=None, help="Only generate this newspaper id.")
+    parser.add_argument(
+        "--locale",
+        default=None,
+        help='Bare locale identifier (e.g. "de_DE") for %%B/%%A date-stamp rendering. Must '
+        "already be generated on this machine (see `locale -a`); the add-on's own container "
+        "entrypoint (entrypoint.sh) generates it on demand instead, since a container starts "
+        "with none.",
+    )
     args = parser.parse_args(argv)
+    configure_locale(args.locale)
     return run(args.config, args.deliver, args.newspaper, args.output)
 
 

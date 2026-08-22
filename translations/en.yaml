@@ -20,3 +20,14 @@ configuration:
       overview, pairing status - all prefixed "Honk!"), which always show regardless of this
       setting. Set it to "debug" or "info" temporarily when you actually need to see what's
       happening inside generation, e.g. while debugging a broken RSS feed.
+  locale:
+    name: "Locale"
+    description: >-
+      Bare glibc locale identifier (e.g. "de_DE", "fr_FR", "es_ES" - no ".UTF-8" suffix) used to
+      render written-out month/weekday names (the strftime "%B"/"%A" directives) in a paper's
+      "datetime_format" (see a *.goosepaper.json's "paper" section) in that language instead of
+      English. Generated on demand at add-on startup - restart the add-on after changing this.
+      Leave empty (the default) to keep the container's default English names; every add-on
+      installer's own newspapers may want a different language, so nothing is forced by default.
+      An invalid identifier is logged as a warning under the Log tab and falls back to English
+      rather than blocking startup.

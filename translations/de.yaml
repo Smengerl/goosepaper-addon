@@ -22,3 +22,14 @@ configuration:
       "Honk!" markiert) darunter begraben; diese werden unabhängig von dieser Einstellung immer
       angezeigt. Setze es vorübergehend auf "debug" oder "info", wenn du tatsächlich sehen musst,
       was während der Generierung passiert, z.B. beim Debuggen eines kaputten RSS-Feeds.
+  locale:
+    name: "Sprache (Locale)"
+    description: >-
+      Reine glibc-Locale-Kennung (z.B. "de_DE", "fr_FR", "es_ES" - ohne ".UTF-8"-Endung) für
+      ausgeschriebene Monats-/Wochentagsnamen (die strftime-Platzhalter "%B"/"%A") in einem
+      "datetime_format" einer Zeitung (siehe den "paper"-Abschnitt einer *.goosepaper.json) - in
+      dieser Sprache statt auf Englisch. Wird beim Start des Add-ons bei Bedarf erzeugt - danach
+      das Add-on neu starten. Leer lassen (Standard) für die englischen Namen des Containers;
+      nicht jeder, der dieses Add-on installiert, möchte seine Zeitungen in derselben Sprache,
+      daher wird standardmäßig nichts erzwungen. Eine ungültige Kennung erscheint als Warnung im
+      Reiter "Protokoll" und fällt auf Englisch zurück, statt den Start zu blockieren.
