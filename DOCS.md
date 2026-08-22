@@ -86,10 +86,22 @@ comics, weather) to copy from and adapt.
 2. Install and start **Goosepaper** from the store. On first start it seeds `/config` with the
    example newspapers automatically (see Configuration above) — no manual setup needed to get a
    working config. It won't generate or schedule anything yet, though: pairing (next step) comes
-   first. `/config` is the add-on's own private, persistent config storage (maps to
-   `/app_configs/goosepaper` on the host — some Supervisor versions still call this
-   `/addon_configs/goosepaper`) — reach it to edit those files with another add-on that can
-   browse it (e.g. Samba, Studio Code Server).
+   first. `/config` is the add-on's own private, persistent config storage — from any other
+   add-on that mounts it, it shows up as `/addon_configs/626e47fd_goosepaper`
+   ([Supervisor's documented convention](https://developers.home-assistant.io/docs/apps/configuration)
+   for the `all_addon_configs`/`all_app_configs` map option; Supervisor is mid-rename from
+   "add-on" to "app" terminology, so which of those two map *keywords* a given companion add-on
+   declares varies — Samba and File editor already use `all_app_configs`, Terminal & SSH and
+   Advanced SSH & Web Terminal still use `all_addon_configs` — but the mounted folder itself is
+   `/addon_configs/...` either way). Reach it to edit those files with another add-on that can
+   browse it (e.g. Samba, Studio Code Server, Terminal & SSH) — see "Editing your configuration"
+   below for the concrete paths and gotchas for each.
+
+   The `626e47fd_` prefix isn't installation-specific — Supervisor derives every add-on
+   repository's store slug as the first 8 hex characters of `sha1(repository_url.lower())`. For
+   the exact URL used in step 1 above, that hash is always `626e47fd`, so this folder name is the
+   same for every user who added the repository with that URL. (Adding it with a trailing slash
+   or a `.git` suffix would hash differently — stick to the URL as given.)
 3. One-time reMarkable pairing — two ways:
    - **GUI (recommended)**: get an 8-character code from
      <https://my.remarkable.com/pair/app>, then enter it under **Settings → Add-ons → Goosepaper →
@@ -116,19 +128,39 @@ comics, weather) to copy from and adapt.
 
 ## Editing your configuration
 
-Two kinds of file matter day to day, both under `/config` (`/app_configs/goosepaper` on the
-host — see Installation above): `addon_config.json` (which newspapers exist, their schedule,
-reMarkable folder, retention) and each newspaper's own `*.goosepaper.json` (its sections,
-sources, paper look). There's no in-app editor for these on the Configuration tab — Supervisor's
-Options UI only renders the schema fields under `options:` in `config.yaml` (currently
-`remarkable_pairing_code` and `generation_log_level`), nothing file-based. Reach the files
-instead with another add-on:
+Two kinds of file matter day to day, both under `/config` (`/addon_configs/626e47fd_goosepaper`
+from any other add-on that mounts it — see Installation above): `addon_config.json` (which
+newspapers exist, their schedule, reMarkable folder, retention) and each newspaper's own
+`*.goosepaper.json` (its sections, sources, paper look). There's no in-app editor for these on
+the Configuration tab — Supervisor's Options UI only renders the schema fields under `options:`
+in `config.yaml` (currently `remarkable_pairing_code` and `generation_log_level`), nothing
+file-based. Reach the files instead with another add-on:
 
 - **Studio Code Server** (Community add-on) — mounts every add-on's config folder automatically,
   no setup needed. Once installed, `goosepaper`'s files just show up in its file tree alongside
-  your other add-ons'.
-- **Samba share** (Community add-on) — mount the add-on config folders as a network share and
-  edit with any text editor on your machine.
+  your other add-ons'. Runs inside the HA web UI, so it's reachable from any browser but not as a
+  regular filesystem mount on your own machine.
+- **File editor** (Core add-on) — also mounts every add-on's config folder, but its
+  **"Enforce Basepath"** option defaults to `true`, which restricts the file tree to `/config`
+  only — so `goosepaper`'s folder won't show up until you turn that off under
+  **Settings → Add-ons → File editor → Configuration** and restart the add-on. With it off,
+  browse to `/addon_configs/626e47fd_goosepaper`.
+- **Terminal & SSH** or **Advanced SSH & Web Terminal** (either add-on, if installed) — fastest
+  way to just look, from a shell (Web Terminal or SSH client):
+  ```bash
+  ls -la /addon_configs/626e47fd_goosepaper/
+  cat /addon_configs/626e47fd_goosepaper/addon_config.json
+  ```
+- **Samba share** (Community add-on) — the option to use when editing from an external/remote
+  computer with your own editor rather than through the HA web UI. It exposes a network share
+  named `addon_configs`; this add-on's files sit in the `626e47fd_goosepaper` folder inside it.
+  Mount it as:
+  - Windows: `\\<ha-host>\addon_configs\626e47fd_goosepaper`
+  - macOS/Linux: `smb://<ha-host>/addon_configs/626e47fd_goosepaper`
+
+  replacing `<ha-host>` with your Home Assistant's IP or hostname. (If your Supervisor version
+  has renamed the share to `app_configs`, use that instead — check what your Samba add-on
+  actually lists.)
 
 After editing: a `*.goosepaper.json` change takes effect on that newspaper's next scheduled run,
 no restart needed; an `addon_config.json` change (schedule, id, enabled, adding/removing a
