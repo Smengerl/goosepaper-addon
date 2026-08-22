@@ -85,7 +85,12 @@ def _generate_newspaper(
     output_dir: pathlib.Path,
 ) -> pathlib.Path:
     providers = construct_story_providers_from_source_configs(goosepaper_config.sources)
-    paper = Goosepaper(story_providers=providers, title=entry.title, deduplicate=True)
+    paper = Goosepaper(
+        story_providers=providers,
+        title=entry.title,
+        deduplicate=True,
+        datetime_format=goosepaper_config.paper.datetime_format,
+    )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     edition_name = f"{entry.title} {datetime.date.today().isoformat()}"

@@ -449,7 +449,7 @@ woff = [
 [[package]]
 name = "goosepaper"
 version = "0.8.1"
-source = { git = "https://github.com/Smengerl/goosepaper-logicpuzzles?branch=mainline#4ea3bb5b425f8be9a0c925351655919e96ed3a96" }
+source = { git = "https://github.com/Smengerl/goosepaper-logicpuzzles?branch=mainline#2c55b499c5f779e850122c62e39dc551c7556495" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "ebooklib" },
