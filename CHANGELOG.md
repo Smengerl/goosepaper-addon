@@ -4,6 +4,17 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.8.0]
+
+### Added
+- A newspaper's `paper` settings can now set `datetime_format` to customize the generation-time
+  stamp shown under the title, or set it to `null` to omit that stamp entirely - see
+  [goosepaper-logicpuzzles#147](https://github.com/Smengerl/goosepaper-logicpuzzles/pull/147) for
+  the accepted format. Existing newspapers are unaffected - the default matches the previous,
+  always-on format.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/06d4ed3...71954a4)
+
 ## [1.7.8]
 
 ### Fixed
