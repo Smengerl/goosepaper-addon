@@ -41,7 +41,38 @@ non-obvious steps; skipping any of them leads to "I pushed but nothing changed" 
    `version_latest` (what the store has) - they should match once the update has actually
    completed and the add-on has restarted.
 
-## Versioning and git tags
+## Release & versioning policy
+
+Version format: `major.minor.bugfix` (`config.yaml`'s `version` field).
+This is the policy for *which* number to bump and whether to ask first -
+same policy as the sibling project `ha-tibber-vehicle`'s `CLAUDE.md`, kept
+consistent across both:
+
+- **Bugfix** (the third number): a single, small fix. No `CHANGELOG.md`
+  entry is required for what a bugfix bump actually contains (this repo's
+  existing `CHANGELOG.md` entries mostly *do* describe patch-level fixes
+  in detail - that's fine to keep doing when it's genuinely useful, just
+  no longer a requirement). **Always ask the user before bumping** -
+  confirm per change whether it should increment the bugfix number, even
+  mid-iteration while testing a deploy (see "Deploying a change to the
+  real add-on" above - don't fold a bugfix bump into that loop unasked
+  just because Supervisor needs a version increase to offer an update).
+- **Minor** (the second number): used whenever a new feature is
+  introduced. Gets a brief `CHANGELOG.md` entry under the new version
+  heading - concise, not full commit-level detail (see "Documentation to
+  keep current with every change" below for the existing writing-style
+  guidance, which still applies). If it's unclear whether a change is
+  substantial enough to warrant a minor bump versus staying at
+  bugfix-level, **ask the user for confirmation** rather than deciding
+  unilaterally.
+- **Major** (the first number): comprehensive changes, a thorough
+  `CHANGELOG.md` entry. **Only the user bumps major, at their own
+  explicit request.** Don't propose, suggest, or perform a major version
+  bump on your own initiative under any circumstance - surface that a
+  change seems major-sized if genuinely relevant, but the decision to
+  actually bump stays with the user.
+
+### Git tags
 
 `config.yaml`'s `version` and the repo's git tags track two different things - Supervisor's
 update mechanism (see "Deploying a change" above) only cares about the former, but a git tag is
@@ -52,12 +83,12 @@ bump:
 - **Major/minor bump** (`1.4.0` → `1.5.0`, or `1.4.0` → `2.0.0`): push a matching git tag
   (`v1.5.0`) once the bump lands and is confirmed running - see "Deploying a change" above. This
   is what a git tag is *for* here: marking an actual release.
-- **Patch-only bump** (`1.4.0` → `1.4.1`) for small/inconsequential fixes: bump `config.yaml` so
+- **Bugfix-only bump** (`1.4.0` → `1.4.1`): bump `config.yaml` so
   Supervisor offers the update, but don't cut a new git tag for it - the existing `v1.4.0` tag
   stays the reference point for that minor line until the next major/minor bump.
 
 This keeps tags meaningful (one per real release, not one per tiny fix) while Supervisor still
-sees every change meant to reach the add-on, patch-level ones included.
+sees every change meant to reach the add-on, bugfix-level ones included.
 
 ## Config files: local working copy vs. live Home Assistant
 
