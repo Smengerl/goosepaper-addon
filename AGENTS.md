@@ -59,6 +59,38 @@ bump:
 This keeps tags meaningful (one per real release, not one per tiny fix) while Supervisor still
 sees every change meant to reach the add-on, patch-level ones included.
 
+## Config files: local working copy vs. live Home Assistant
+
+`config/` (`addon_config.json` and each `*.goosepaper.json`) is gitignored - it's a user's
+personal live configuration, not repo-tracked example data. Whether a local checkout of this repo
+is also the live location the add-on actually reads from varies per user and per session - don't
+assume either way. The condition that matters:
+
+- The user has *some* way to reach their real Home Assistant instance directly - an MCP server,
+  a mounted Samba share, SSH, Studio Code Server, the File editor add-on, etc. (see DOCS.md's
+  "Editing your configuration" section for the options this add-on documents), **and**
+- a `config/` file gets created or changed in a local working copy that is *not itself* that live
+  location (e.g. a plain git checkout on the user's own machine, separate from wherever Home
+  Assistant actually reads `/config`/`/addon_configs/<slug>` from).
+
+When both hold, treat the local copy and the live instance as two separate things that can drift
+silently - a change on one side has no effect on the running add-on until it reaches the other.
+Don't assume they're already in sync, and don't push a change to the live side without asking:
+
+1. After making (or discovering) a config change locally, tell the user plainly that it isn't live
+   yet.
+2. If you have a way to reach the live location, offer to check it - diff the live file against
+   the one that was just changed, rather than assuming "no news is good news."
+3. Ask whether the change should be synced/uploaded to Home Assistant now. Only do it once they
+   say yes.
+4. This runs in the opposite direction too: if a live-side edit turns up that isn't reflected
+   locally (e.g. an earlier out-of-band edit made directly on the live instance), surface that
+   drift and offer to reconcile it - don't silently overwrite one side with the other.
+
+None of this applies if the "local checkout" already *is* the live config location (working
+directly over a Samba mount, or via an MCP tool that reads/writes the real instance) - in that
+case there's only one copy, nothing to synchronize.
+
 ## Known nits (not blocking, but worth fixing opportunistically)
 
 - No prebuilt image, `aarch64`-only (see `DEVELOPMENT.md`'s Roadmap section: a GitHub Actions
