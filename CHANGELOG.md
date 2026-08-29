@@ -4,6 +4,21 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.9.2]
+
+### Changed
+- Comic sources (`"type": "comic"`) no longer show the strip's own name as a headline above
+  the strip - it already draws its own title into the image, so the heading was a plain
+  duplicate. The name is still shown wherever it was before *besides* directly above the
+  strip: the table of contents (whether the source is grouped into a section or not) and, for
+  the addon's own bundled `julian.goosepaper.json`, each of its 6 comics now gets its own named
+  section (`"Garfield"`, `"Peanuts"`, `"Big Nate"`, `"FoxTrot"`, `"Wallace the Brave"`,
+  `"Brewster Rockit"`) with the heading hidden via `section_heading_visible: false` (see
+  1.9.1), instead of all 6 sharing one generic "Comics" section. `tagesgoose.goosepaper.json`'s
+  XKCD source got the same treatment (its own `"XKCD"` section, heading hidden).
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/579e1a5...HEAD)
+
 ## [1.9.1]
 
 ### Added
