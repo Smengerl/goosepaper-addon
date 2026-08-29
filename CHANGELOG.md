@@ -17,7 +17,7 @@ full technical story behind any entry, follow its commit-history link.
   1.9.1), instead of all 6 sharing one generic "Comics" section. `tagesgoose.goosepaper.json`'s
   XKCD source got the same treatment (its own `"XKCD"` section, heading hidden).
 
-[Commits](https://github.com/Smengerl/goosepaper-addon/compare/579e1a5...HEAD)
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/579e1a5...c30e1c0)
 
 ## [1.9.1]
 
