@@ -13,7 +13,7 @@ full technical story behind any entry, follow its commit-history link.
   strips already show their own titles inside the image and repeating the section name as
   running text would just be redundant.
 
-[Commits](https://github.com/Smengerl/goosepaper-addon/compare/8b63c9c...99e163b)
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/8b63c9c...579e1a5)
 
 ## [1.9.0]
 
