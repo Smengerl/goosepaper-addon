@@ -4,6 +4,17 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.9.1]
+
+### Added
+- A `*.goosepaper.json` source can now set `"section_heading_visible": false` alongside
+  `"section"` - keeps that group's entry in the table of contents while hiding the heading
+  itself from the printed page. Useful for a section like a run of comic strips, where the
+  strips already show their own titles inside the image and repeating the section name as
+  running text would just be redundant.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/8b63c9c...99e163b)
+
 ## [1.9.0]
 
 ### Added
