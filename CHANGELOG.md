@@ -24,7 +24,7 @@ full technical story behind any entry, follow its commit-history link.
   number instead of leaving no trace. In practice this means the kernel's out-of-memory
   killer, which previously ended a run silently.
 
-[Commits](https://github.com/Smengerl/goosepaper-addon/compare/468ccd6...bb9a8cc)
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/468ccd6...1d94c67)
 
 ## [1.9.2]
 
