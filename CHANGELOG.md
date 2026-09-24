@@ -4,6 +4,28 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.0]
+
+### Fixed
+- Each edition is now generated in its own short-lived process, so the memory it uses is
+  handed back in full once it finishes. Previously generation ran inside the scheduler
+  process, which never exits - so whatever a run allocated stayed allocated for as long as
+  the add-on was up. Measured on a 4 GB Home Assistant Green: 40 MiB while idle, 409 MiB
+  after the first edition, roughly 640 MiB after four, and it never came back down. On a
+  small box that is memory Home Assistant itself can no longer use. Idle usage between
+  editions now stays at the ~40 MiB the scheduler actually needs.
+
+### Changed
+- Failures that the add-on already handles internally - an unreadable `addon_config.json`,
+  a newspaper id that does not exist - now mark the run as failed in the Log tab. They were
+  logged before, but the run was still announced as finished right afterwards, so the
+  failure was easy to miss.
+- A generation that is killed from the outside is now logged explicitly with its signal
+  number instead of leaving no trace. In practice this means the kernel's out-of-memory
+  killer, which previously ended a run silently.
+
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/468ccd6...bb9a8cc)
+
 ## [1.9.2]
 
 ### Changed

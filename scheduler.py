@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import multiprocessing
 import os
 import pathlib
 import shutil
@@ -182,13 +183,67 @@ def _check_and_complete_remarkable_pairing() -> bool:
         return False
 
 
-def _run_newspaper(newspaper_id: str) -> None:
-    logger.info("Honk! Triggering scheduled generation for %r", newspaper_id)
+def _generate_in_child(newspaper_id: str) -> None:
+    """Generate one edition. Runs in the forked child, never in the scheduler itself.
+
+    The child inherits this process's logging setup through fork, so everything logged
+    here - including the full traceback below - lands in the add-on's Log tab exactly
+    as before. The difference is that failures additionally become a non-zero exit
+    code, which is what the parent reports on.
+
+    deliver.run() returns 1 for errors it already handled and logged itself (bad
+    addon_config.json, unknown newspaper id, ...). That return value used to be
+    discarded here, so those runs looked successful in the log; it is now propagated.
+    """
     try:
-        deliver.run(ADDON_CONFIG_PATH, True, newspaper_id, OUTPUT_DIR)
-        logger.info("Honk! Finished scheduled generation for %r", newspaper_id)
+        rc = deliver.run(ADDON_CONFIG_PATH, True, newspaper_id, OUTPUT_DIR)
     except Exception:
-        logger.exception("Honk! Scheduled run failed for %r", newspaper_id)
+        logger.exception("Honk! Generation raised an exception for %r", newspaper_id)
+        raise SystemExit(1)
+    if rc:
+        raise SystemExit(int(rc))
+
+
+def _run_newspaper(newspaper_id: str) -> None:
+    """Run one edition in a throwaway child process, so its memory is actually given back.
+
+    Measured 2026-09 on HA Green: the scheduler sat at 39.9 MiB idle, then 408.8 MiB after
+    one edition and ~640 MiB after four, and stayed there - flat to the decimal between
+    runs, with the kernel gradually swapping the untouched pages out (~277 MiB still
+    resident after zswap compression). Nothing here ever exits, so that memory was never
+    returned. A child process hands all of it back to the kernel when it dies, regardless
+    of which library holds on to it.
+
+    "fork" is pinned deliberately: it is what gives the child the parent's already
+    configured loggers. With "spawn" the child would re-import this module and start
+    with a default logging setup, and tracebacks would go missing from the Log tab.
+    """
+    logger.info("Honk! Triggering scheduled generation for %r", newspaper_id)
+
+    proc = multiprocessing.get_context("fork").Process(
+        target=_generate_in_child,
+        args=(newspaper_id,),
+        name=f"goosepaper-{newspaper_id}",
+    )
+    proc.start()
+    proc.join()
+    code = proc.exitcode
+
+    if code == 0:
+        logger.info("Honk! Finished scheduled generation for %r", newspaper_id)
+    elif code is not None and code < 0:
+        logger.error(
+            "Honk! Generation for %r was killed by signal %d - no traceback available. "
+            "Signal 9 here almost always means the kernel's OOM killer stepped in.",
+            newspaper_id,
+            -code,
+        )
+    else:
+        logger.error(
+            "Honk! Scheduled run failed for %r (exit code %s) - the reason is logged above.",
+            newspaper_id,
+            code,
+        )
 
 
 def _describe_retention(retention_keep_last_n: int | None) -> str:
