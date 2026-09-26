@@ -19,6 +19,8 @@ full technical story behind any entry, follow its commit-history link.
   forever. Since editions are serialized, a single stuck run would otherwise hold up every
   other newspaper behind it for the rest of the night.
 
+[Commits](https://github.com/Smengerl/goosepaper-addon/compare/654375b...00928c1)
+
 ## [1.10.0]
 
 ### Fixed
