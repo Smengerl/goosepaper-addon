@@ -4,6 +4,21 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.1]
+
+### Changed
+- Editions are now generated strictly one after another, even when several newspapers share
+  the same schedule. Previously each one got its own process at the same moment, so three
+  newspapers scheduled for 04:00 meant three renderers running side by side, each with its
+  own copy of the interpreter and the layout libraries. Now the peak stays at one edition no
+  matter how many newspapers you add. They take a few minutes each, so the later ones simply
+  finish a little later.
+
+### Added
+- A generation that takes longer than 15 minutes is stopped and logged, instead of running
+  forever. Since editions are serialized, a single stuck run would otherwise hold up every
+  other newspaper behind it for the rest of the night.
+
 ## [1.10.0]
 
 ### Fixed

@@ -15,6 +15,7 @@ import pathlib
 import shutil
 import signal
 
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from remarkapy.client import Client
@@ -183,6 +184,12 @@ def _check_and_complete_remarkable_pairing() -> bool:
         return False
 
 
+# Hard ceiling for a single edition. The longest real run observed so far is about five
+# minutes; this is generous enough not to fire on a slow feed, and short enough that one
+# stuck run does not swallow the whole night now that editions are serialized.
+GENERATION_TIMEOUT_S = 15 * 60
+
+
 def _generate_in_child(newspaper_id: str) -> None:
     """Generate one edition. Runs in the forked child, never in the scheduler itself.
 
@@ -217,6 +224,12 @@ def _run_newspaper(newspaper_id: str) -> None:
     "fork" is pinned deliberately: it is what gives the child the parent's already
     configured loggers. With "spawn" the child would re-import this module and start
     with a default logging setup, and tracebacks would go missing from the Log tab.
+
+    Note how the work is split: the scheduler's worker thread does not generate anything,
+    it only starts the child and then blocks in join() until it is done. Memory is
+    reclaimed per process, not per thread, so the process boundary is the whole point -
+    the thread is just the place where we wait. That also means the executor's pool size
+    caps how many children can exist at once, which is why main() pins it to one.
     """
     logger.info("Honk! Triggering scheduled generation for %r", newspaper_id)
 
@@ -226,7 +239,23 @@ def _run_newspaper(newspaper_id: str) -> None:
         name=f"goosepaper-{newspaper_id}",
     )
     proc.start()
-    proc.join()
+    proc.join(GENERATION_TIMEOUT_S)
+
+    if proc.is_alive():
+        logger.error(
+            "Honk! Generation for %r is still running after %d minutes - terminating it, so the "
+            "remaining newspapers are not stuck behind it.",
+            newspaper_id,
+            GENERATION_TIMEOUT_S // 60,
+        )
+        proc.terminate()
+        proc.join(30)
+        if proc.is_alive():
+            logger.error("Honk! Generation for %r ignored SIGTERM - killing it.", newspaper_id)
+            proc.kill()
+            proc.join()
+        return
+
     code = proc.exitcode
 
     if code == 0:
@@ -304,7 +333,13 @@ def main() -> int:
         return 1
     _log_newspaper_overview(addon_config, pathlib.Path(OUTPUT_DIR))
 
-    scheduler = BlockingScheduler()
+    # One worker, deliberately: each job's thread holds one child process open for the
+    # duration of a generation, so the pool size is also the cap on how many generations
+    # run at once. Simon's three newspapers all fire at 04:00; before this they forked
+    # three children in parallel, each with its own copy of the interpreter and the
+    # rendering libraries. Serializing them keeps the peak at one edition no matter how
+    # many newspapers get added later. They take 1-5 minutes each, so the wait is free.
+    scheduler = BlockingScheduler(executors={"default": ThreadPoolExecutor(1)})
 
     def _handle_shutdown(signum, frame):
         logger.info("Honk! Received signal %s, shutting down...", signum)
