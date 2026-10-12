@@ -4,6 +4,21 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.3]
+
+### Fixed
+- Daily comics are no longer lost when GoComics briefly blocks the add-on for sending too many
+  requests ("429 Too Many Requests"). The comic provider now waits and retries (up to roughly
+  six minutes in total) instead of dropping the comic from the edition.
+
+### Changed
+- Requests to the same comic site are now spaced at least 1.5 seconds apart, which keeps the
+  add-on below the point where GoComics starts blocking. Editions with many comics take a
+  little longer to generate.
+- Updated the bundled newspaper generator (goosepaper 0.10.0 -> 0.11.0, with the changes above:
+  `goosepaper-logicpuzzles`@c8e2eab and @409a4bf) and the reMarkable client library
+  (remarkapy 0.2.2 -> 0.3.1).
+
 ## [1.10.2]
 
 ### Fixed
