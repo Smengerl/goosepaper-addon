@@ -4,6 +4,19 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.2]
+
+### Fixed
+- Newspapers that share a schedule no longer get skipped. Since 1.10.1 editions are generated
+  one after another, but every newspaper except the first one in line was dropped as "missed"
+  because it had to wait a few minutes for its turn. Only the first edition each morning was
+  actually produced. Queued editions now wait up to an hour for their turn and then run.
+
+### Added
+- If an edition still could not start within that hour, the log now says so explicitly
+  ("was NOT generated") with the scheduled time and how long it waited, instead of only a
+  generic scheduler warning.
+
 ## [1.10.1]
 
 ### Changed

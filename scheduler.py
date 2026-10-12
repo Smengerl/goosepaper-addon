@@ -14,7 +14,9 @@ import os
 import pathlib
 import shutil
 import signal
+from datetime import datetime
 
+from apscheduler.events import EVENT_JOB_MISSED, JobExecutionEvent
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -189,6 +191,12 @@ def _check_and_complete_remarkable_pairing() -> bool:
 # stuck run does not swallow the whole night now that editions are serialized.
 GENERATION_TIMEOUT_S = 15 * 60
 
+# Editions run strictly one after another (see main()), so a newspaper whose cron time has
+# come may have to wait behind the ones ahead of it. APScheduler's default grace time is a
+# single second - anything that waits longer is silently dropped as "missed". An hour covers
+# any realistic queue (a handful of editions at up to GENERATION_TIMEOUT_S each).
+MISFIRE_GRACE_S = 60 * 60
+
 
 def _generate_in_child(newspaper_id: str) -> None:
     """Generate one edition. Runs in the forked child, never in the scheduler itself.
@@ -338,12 +346,33 @@ def main() -> int:
     # run at once. Simon's three newspapers all fire at 04:00; before this they forked
     # three children in parallel, each with its own copy of the interpreter and the
     # rendering libraries. Serializing them keeps the peak at one edition no matter how
-    # many newspapers get added later. They take 1-5 minutes each, so the wait is free.
+    # many newspapers get added later. They take 1-5 minutes each, so the wait is free -
+    # as long as the jobs get a misfire grace time that covers it (MISFIRE_GRACE_S), since
+    # a job still queued behind another one counts as late.
     scheduler = BlockingScheduler(executors={"default": ThreadPoolExecutor(1)})
 
     def _handle_shutdown(signum, frame):
         logger.info("Honk! Received signal %s, shutting down...", signum)
         scheduler.shutdown(wait=False)
+
+    def _log_missed_edition(event: JobExecutionEvent) -> None:
+        # Only fires when an edition could not start within MISFIRE_GRACE_S of its scheduled
+        # time - i.e. it is skipped for today, not just delayed.
+        job = scheduler.get_job(event.job_id)
+        title = job.name if job else event.job_id
+        scheduled = event.scheduled_run_time
+        late = datetime.now(scheduled.tzinfo) - scheduled
+        logger.error(
+            "Honk! Edition %r (%s) was NOT generated: it was scheduled for %s but could not "
+            "start within %d minutes (waited %d minutes). Skipped until its next scheduled run.",
+            title,
+            event.job_id,
+            scheduled.strftime("%Y-%m-%d %H:%M"),
+            MISFIRE_GRACE_S // 60,
+            int(late.total_seconds() // 60),
+        )
+
+    scheduler.add_listener(_log_missed_edition, EVENT_JOB_MISSED)
 
     signal.signal(signal.SIGTERM, _handle_shutdown)
     signal.signal(signal.SIGINT, _handle_shutdown)
@@ -353,7 +382,14 @@ def main() -> int:
             logger.info("Honk! Skipping disabled newspaper %r", entry.id)
             continue
         trigger = CronTrigger.from_crontab(entry.schedule)
-        scheduler.add_job(_run_newspaper, trigger=trigger, args=[entry.id], id=entry.id, name=entry.title)
+        scheduler.add_job(
+            _run_newspaper,
+            trigger=trigger,
+            args=[entry.id],
+            id=entry.id,
+            name=entry.title,
+            misfire_grace_time=MISFIRE_GRACE_S,
+        )
         logger.info("Honk! Scheduled %r (%s) -> cron %r", entry.title, entry.id, entry.schedule)
 
     if not scheduler.get_jobs():
