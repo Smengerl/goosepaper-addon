@@ -83,3 +83,13 @@ See `AGENTS.md`'s "Deploying a change to the real add-on" section for the full c
   install/update. Deliberately bundled as one item and pushed past v1: it's a real chunk of
   CI/build-pipeline work on its own, and the on-device build - while slow - works correctly today
   for the one architecture the maintainer actually runs.
+
+- **Move to APScheduler 4 once it is officially released**: the add-on runs on APScheduler 3.x,
+  whose cron weekdays count `0 = Monday` while standard cron counts `0 = Sunday` (kept in 3.x for
+  backwards compatibility, see the [3.x docs](https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html)).
+  `cron.py` works around that by translating the day-of-week field into weekday names. The 4.x
+  series fixed the numbering ([migration guide](https://apscheduler.readthedocs.io/en/master/migration.html):
+  "CronTrigger was changed to respect the standard order of weekdays, so that Sunday is now 0").
+  **TODO**: once 4.x has a stable release, port `scheduler.py` to its (redesigned) API, check that
+  `CronTrigger.from_crontab` then behaves like standard cron for every case covered by
+  `tests/test_cron.py`, and delete `cron.py` together with its translation tests.

@@ -9,6 +9,9 @@ passes the day-of-week field through untranslated, but APScheduler numbers weekd
 
 `trigger_from_crontab` fixes that by reading the field with standard cron meaning and handing
 APScheduler weekday *names* (mon, tue, ...), which both sides agree on.
+
+TODO: APScheduler 4.x fixed the weekday numbering. Once it has a stable release and the add-on
+has moved to it, this module can go (see the Roadmap in DEVELOPMENT.md).
 """
 
 from __future__ import annotations
