@@ -56,6 +56,23 @@ newspaper, with its schedule, reMarkable folder, retention policy, and a path to
 `goosepaper_config` is resolved relative to `addon_config.json`'s own directory, so newspaper
 files normally sit next to it under `/config`.
 
+**`schedule`** is a standard five-field cron expression: `minute hour day-of-month month day-of-week`,
+evaluated in the add-on's local time zone. The day-of-week field follows the usual crontab
+convention: `0` or `7` = Sunday, `1` = Monday ... `6` = Saturday. Names (`mon`, `tue`, ..., `sun`),
+ranges (`1-5`, `mon-fri`), lists (`1,3,5`) and steps (`*/2`) work too.
+
+| Schedule | Runs |
+|---|---|
+| `0 6 * * *` | every day at 06:00 |
+| `0 4 * * 1` | every Monday at 04:00 |
+| `0 8 * * 0` | every Sunday at 08:00 |
+| `30 5 * * 1-5` | Monday to Friday at 05:30 |
+| `0 7 * * sat,sun` | Saturday and Sunday at 07:00 |
+
+Names are the least error-prone way to write weekdays. One difference from classic cron: if you
+set both day-of-month and day-of-week, an edition runs only when *both* match (classic cron runs
+when *either* matches).
+
 **`<name>.goosepaper.json`** (one per newspaper) is a plain goosepaper config — paper style plus a
 list of sources — parsed entirely by goosepaper itself, not by this add-on. This add-on no longer
 carries its own copy of that schema, so field names, available source types, and validation

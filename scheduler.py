@@ -19,11 +19,11 @@ from datetime import datetime
 from apscheduler.events import EVENT_JOB_MISSED, JobExecutionEvent
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.cron import CronTrigger
 from remarkapy.client import Client
 from remarkapy.exceptions import ConfigNotFoundError
 
 import config_schema
+import cron
 import deliver
 
 logger = logging.getLogger("goosepaper-addon")
@@ -381,7 +381,7 @@ def main() -> int:
         if not entry.enabled:
             logger.info("Honk! Skipping disabled newspaper %r", entry.id)
             continue
-        trigger = CronTrigger.from_crontab(entry.schedule)
+        trigger = cron.trigger_from_crontab(entry.schedule)
         scheduler.add_job(
             _run_newspaper,
             trigger=trigger,

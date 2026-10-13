@@ -4,6 +4,16 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.4]
+
+### Fixed
+- Weekdays in a newspaper's `schedule` now mean what they mean in every cron guide: `0` or `7`
+  is Sunday, `1` is Monday, ... `6` is Saturday. Until now the add-on shifted them by one day
+  (`1` ran on Tuesdays, `0` on Mondays, `6` on Sundays). **If you wrote a weekday number in
+  `addon_config.json`, your newspaper will now run on the day you meant, i.e. a day earlier than
+  before.** Weekday names (`mon`-`sun`), ranges, lists and steps work as well. The schedule format
+  is now described in the documentation.
+
 ## [1.10.3]
 
 ### Fixed

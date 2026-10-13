@@ -33,7 +33,7 @@ class AddonNewspaperEntry(StrictModel):
     id: str
     enabled: bool = True
     title: str
-    schedule: str  # cron expression, e.g. "0 6 * * *" - passed straight to CronTrigger.from_crontab
+    schedule: str  # standard 5-field cron expression, e.g. "0 6 * * *" - see cron.py
     goosepaper_config: str  # path to the *.goosepaper.json file with this newspaper's content
     remarkable_folder: str
     # None = no retention (upload() gets called without retention_keep_last_n/retention_prefix,
