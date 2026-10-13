@@ -23,7 +23,7 @@ articles render instead of showing as an empty box) ships
 uv sync
 ./preview.sh                    # generate all enabled newspapers into output/, no upload
 ./preview.sh --newspaper <id>   # just one, by its "id" in addon_config.json
-./run.sh                        # generate AND upload to reMarkable
+./preview.sh --deliver           # generate AND upload to reMarkable
 ```
 
 `config/` holds your own real configuration and is gitignored — see [`examples/`](examples/) for

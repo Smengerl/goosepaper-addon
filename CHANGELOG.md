@@ -4,6 +4,24 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.5]
+
+### Fixed
+- A run now counts as failed when the reMarkable upload fails or a newspaper's config file
+  cannot be loaded. Before, the Log tab still said "Finished scheduled generation" in those
+  cases.
+- Deleting old local editions no longer touches another newspaper whose title starts with the
+  same words (e.g. "Rätselheft" and "Rätselheft Kids"), and titles containing characters like
+  `[` or `*` are handled correctly.
+- A typo in a `schedule` cron string or a duplicate newspaper `id` in `addon_config.json` is now
+  reported as a clear config error instead of a crash with a stack trace on every start.
+
+### Changed
+- Updated to goosepaper 0.11.0 and remarkapy 0.3.1. remarkapy now writes in the format the
+  reMarkable cloud requires on its own, so the add-on's own workaround for it is gone.
+- Rebuilding the add-on after a code-only change no longer reinstalls all dependencies, so
+  updates build noticeably faster on the Home Assistant device.
+
 ## [1.10.4]
 
 ### Fixed
@@ -41,6 +59,7 @@ full technical story behind any entry, follow its commit-history link.
 - If an edition still could not start within that hour, the log now says so explicitly
   ("was NOT generated") with the scheduled time and how long it waited, instead of only a
   generic scheduler warning.
+
 
 ## [1.10.1]
 

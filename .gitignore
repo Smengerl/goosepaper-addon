@@ -18,3 +18,4 @@ output/
 # Real, personal newspaper configs (feeds, home coordinates, reMarkable folder names) - never
 # committed. See examples/ for sanitized templates to copy into config/ instead.
 config/
+data/

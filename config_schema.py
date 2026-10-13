@@ -18,9 +18,12 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
+import cron
 
 
 class StrictModel(BaseModel):
@@ -43,9 +46,24 @@ class AddonNewspaperEntry(StrictModel):
     # min_body_text_length/max_body_text_length already do.
     retention_keep_last_n: Optional[int] = None
 
+    @field_validator("schedule")
+    @classmethod
+    def _valid_cron(cls, value: str) -> str:
+        # Fail with a pydantic error naming the field instead of a scheduler traceback at startup.
+        cron.trigger_from_crontab(value)
+        return value
+
 
 class AddonConfig(StrictModel):
     newspapers: list[AddonNewspaperEntry]
+
+    @model_validator(mode="after")
+    def _unique_ids(self) -> "AddonConfig":
+        ids = [n.id for n in self.newspapers]
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        if dupes:
+            raise ValueError(f"duplicate newspaper id(s): {', '.join(dupes)}")
+        return self
 
 
 def load_addon_config(path: str | pathlib.Path) -> AddonConfig:
@@ -64,3 +82,11 @@ def resolve_goosepaper_config_path(
     if config_path.is_absolute():
         return config_path
     return pathlib.Path(addon_config_path).resolve().parent / config_path
+
+
+def local_editions(title: str, out_dir: pathlib.Path) -> list[pathlib.Path]:
+    """Local PDFs of exactly this newspaper, oldest first. Matches "<title> YYYY-MM-DD.pdf"
+    literally, so a title that is a prefix of another ("Raetselheft" vs "Raetselheft Kids") or
+    contains glob characters never picks up someone else's editions."""
+    pattern = re.compile(re.escape(title) + r" \d{4}-\d{2}-\d{2}\.pdf")
+    return sorted(p for p in out_dir.glob("*.pdf") if pattern.fullmatch(p.name))

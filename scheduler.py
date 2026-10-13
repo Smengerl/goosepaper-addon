@@ -290,7 +290,7 @@ def _describe_retention(retention_keep_last_n: int | None) -> str:
 
 
 def _last_local_edition(title: str, output_dir: pathlib.Path) -> str:
-    matches = sorted(output_dir.glob(f"{title} *.pdf"))
+    matches = config_schema.local_editions(title, output_dir)
     return matches[-1].name if matches else "none yet"
 
 

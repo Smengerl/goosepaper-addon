@@ -6,24 +6,15 @@ config_schema.py's module docstring for why.
 
 Depends on the goosepaper-logicpuzzles fork (see pyproject.toml, pinned to its `mainline`
 branch) instead of the PyPI `goosepaper` package - the whole point of the fork is to get gaps
-like the ones above fixed upstream (see mainline's README's "About this fork" PR-tracking table)
-rather than staying addon-only forever; this file only carries what's genuinely HA/Supervisor-
-specific.
+fixed upstream (see mainline's README's "About this fork" PR-tracking table) rather than staying
+addon-only forever; this file only carries what's genuinely HA/Supervisor-specific.
 
 What's left as a genuine wrapper concern:
-1. remarkapy reads the account's sync `schemaVersion` from the root manifest and reuses it for
-   writes. This account's is reported as schema 3, and gets rejected by the cloud on every write
-   ("Software must be updated" / update-required) even though the server accepts schema-4 writes
-   just fine - force schema 4. Reported upstream as
-   https://github.com/j6k4m8/remarkapy/issues/24 (not a PR - forcing this unconditionally isn't
-   verified safe for accounts that might still be genuinely write-limited to schema 3, only for
-   this one). Revisit this patch once that's resolved - it may no longer be needed, or need a
-   narrower condition than "always 4".
-2. Turning `addon_config.json`'s per-newspaper entries (schedule/folder/retention/which
+1. Turning `addon_config.json`'s per-newspaper entries (schedule/folder/retention/which
    `*.goosepaper.json` file) into calls against goosepaper's own `Goosepaper`/`upload()` - the
    multi-newspaper orchestration layer goosepaper itself doesn't have (it's designed around one
    config file per invocation).
-3. `configure_locale()`, driven by the `locale` add-on option (see config.yaml/scheduler.py), so
+2. `configure_locale()`, driven by the `locale` add-on option (see config.yaml/scheduler.py), so
    a `datetime_format` like "%-d. %B %Y" (see tagesgoose.goosepaper.json) renders "22. August"
    and "15. Januar" instead of "15. January" the eleven months that aren't a German/English
    coincidence. goosepaper's own `datetime_format` is a plain `strftime()` pass-through by design
@@ -41,7 +32,10 @@ import pathlib
 import sys
 from typing import List, Optional
 
-import remarkapy.client as _rc_client
+from goosepaper.config import load_paper_config
+from goosepaper.goosepaper import Goosepaper
+from goosepaper.upload import upload as goosepaper_upload
+from goosepaper.util import construct_story_providers_from_source_configs
 
 import config_schema
 
@@ -77,30 +71,6 @@ def configure_locale(name: Optional[str]) -> None:
         )
 
 
-# --- generic, always-on monkeypatch ------------------------------------------------------------
-# Still needed - see module docstring, point 1 (https://github.com/j6k4m8/remarkapy/issues/24).
-# The interactive=True default that used to need patching here too (goosepaper.auth.auth_client,
-# goosepaper.upload.auth_client) is now a real parameter on goosepaper's own auth_client()/
-# upload() (PR #137) - passed as interactive=False at the two call sites below instead.
-
-_original_get_root_state = _rc_client.Client.get_root_state
-
-
-def _patched_get_root_state(self, refresh=False):
-    root_hash, generation, _schema_version = _original_get_root_state(self, refresh=refresh)
-    self._root_state = (root_hash, generation, 4)
-    return self._root_state
-
-
-_rc_client.Client.get_root_state = _patched_get_root_state
-
-
-from goosepaper.config import load_paper_config  # noqa: E402
-from goosepaper.goosepaper import Goosepaper  # noqa: E402
-from goosepaper.upload import upload as goosepaper_upload  # noqa: E402
-from goosepaper.util import construct_story_providers_from_source_configs  # noqa: E402
-
-
 def _cleanup_local_editions(
     entry: config_schema.AddonNewspaperEntry, output_path: pathlib.Path, out_dir: pathlib.Path
 ) -> None:
@@ -108,8 +78,7 @@ def _cleanup_local_editions(
     for the same newspaper. Runs after a successful upload - goosepaper's own `cleanup` delivery
     setting is left off (see `run()`) precisely so the latest edition survives locally instead of
     being removed the moment it's uploaded; this is what actually enforces "only the latest"."""
-    prefix = f"{entry.title} "
-    for stale in out_dir.glob(f"{prefix}*.pdf"):
+    for stale in config_schema.local_editions(entry.title, out_dir):
         if stale == output_path:
             continue
         logger.info("Honk! Local retention: deleting old local edition %r", stale.name)
@@ -159,12 +128,14 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
             return 1
 
     out_dir = pathlib.Path(output_dir)
+    failed = False
     for entry in newspapers:
         config_path = config_schema.resolve_goosepaper_config_path(addon_config_path, entry)
         try:
             goosepaper_config = load_paper_config(config_path)
         except Exception as err:
             logger.error("Honk! Could not load %s for %r: %s", config_path, entry.title, err)
+            failed = True
             continue
 
         logger.info("Honk! Generating %r (from %s)...", entry.title, config_path)
@@ -190,10 +161,11 @@ def run(addon_config_path: str, deliver: bool, newspaper_id: Optional[str], outp
         )
         if not result:
             logger.error("Honk! Upload failed for %r.", entry.title)
+            failed = True
             continue
         _cleanup_local_editions(entry, output_path, out_dir)
 
-    return 0
+    return 1 if failed else 0
 
 
 def main(argv: Optional[List[str]] = None) -> int:

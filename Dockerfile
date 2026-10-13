@@ -50,12 +50,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir uv
 
 WORKDIR /build/goosepaper-addon
-COPY . .
-RUN chmod +x entrypoint.sh
 
+# Dependencies first, source after: editing a .py file must not re-fetch every dependency (and
+# the goosepaper git checkout) - the Supervisor builds this image on the device itself.
 # --frozen: build against the exact goosepaper commit pinned in uv.lock, not whatever mainline
 # has moved to since - re-run `uv lock` locally and commit the result to pick up fork updates.
-RUN uv sync --no-dev --frozen
+COPY pyproject.toml uv.lock .python-version ./
+RUN uv sync --no-dev --frozen --no-install-project
+
+COPY . .
+RUN chmod +x entrypoint.sh
 
 # HOME controls where remarkapy stores its reMarkable auth token (~/.rmapi by default) - pointed
 # at /data so pairing (see README: `remarkapy init`) only has to happen once, on the host volume,

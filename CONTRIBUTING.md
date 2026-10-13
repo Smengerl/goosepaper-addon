@@ -28,7 +28,7 @@ cd goosepaper-addon
 ```
 
 From there, see DEVELOPMENT.md's "Running locally" section for the actual `uv sync`/
-`preview.sh`/`run.sh` workflow — not repeated here to avoid the two drifting out of sync.
+`preview.sh` workflow — not repeated here to avoid the two drifting out of sync.
 
 There's no automated test suite in this repo yet (see AGENTS.md's "Known nits") — verify a
 change by actually generating a newspaper via `./preview.sh` and checking the resulting PDF.

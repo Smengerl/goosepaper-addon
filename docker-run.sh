@@ -12,4 +12,4 @@ docker run --rm -it \
     -v "$(pwd)/config:/config:ro" \
     -v "$(pwd)/data:/data" \
     --name goosepaper-addon \
-    goosepaper-addon "$@"
+    goosepaper-addon
