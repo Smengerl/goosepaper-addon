@@ -4,6 +4,20 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [1.10.6]
+
+### Fixed
+- Failed image downloads and SVG images in articles are handled properly: SVGs (logos, diagrams)
+  stay in the article instead of disappearing, and a story whose only content was an image that
+  failed to load - typically a comic strip - is left out instead of showing an empty gap.
+- A failed clean-up of old editions on the reMarkable no longer turns a successful upload into
+  an error, and the newest edition is never removed by that clean-up, even if its name doesn't
+  sort like a date.
+- Invalid values in `addon_config.json`/paper configs are reported when the config is loaded
+  instead of making a whole feed or puzzle section silently vanish during generation: broken
+  regular expressions or CSS selectors in RSS filters, and a `box_size` that is not a whole
+  number for puzzles.
+
 ## [1.10.5]
 
 ### Fixed
