@@ -4,6 +4,13 @@ All notable changes to this add-on are documented here, grouped by the `config.y
 they shipped in. Entries describe what changed for you as someone running the add-on - for the
 full technical story behind any entry, follow its commit-history link.
 
+## [Unreleased]
+
+### Changed
+- The limit for a single edition is now 30 minutes instead of 15. The puzzle booklet takes
+  over 11 minutes because it generates its puzzles fresh on every run, so a harder set could
+  have hit the old limit and been stopped without producing a PDF.
+
 ## [1.10.6]
 
 ### Fixed

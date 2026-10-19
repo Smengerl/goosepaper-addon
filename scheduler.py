@@ -186,15 +186,19 @@ def _check_and_complete_remarkable_pairing() -> bool:
         return False
 
 
-# Hard ceiling for a single edition. The longest real run observed so far is about five
-# minutes; this is generous enough not to fire on a slow feed, and short enough that one
+# Hard ceiling for a single edition. Typical runs take 1-7 minutes; the puzzle booklet is the
+# outlier at 11+ minutes (it generates its puzzles fresh on every run), which left only
+# ~3.5 minutes of headroom under the previous 15-minute ceiling. 30 minutes is generous
+# enough not to fire on a heavier puzzle or a slow feed, and still short enough that one
 # stuck run does not swallow the whole night now that editions are serialized.
-GENERATION_TIMEOUT_S = 15 * 60
+GENERATION_TIMEOUT_S = 30 * 60
 
 # Editions run strictly one after another (see main()), so a newspaper whose cron time has
 # come may have to wait behind the ones ahead of it. APScheduler's default grace time is a
 # single second - anything that waits longer is silently dropped as "missed". An hour covers
-# any realistic queue (a handful of editions at up to GENERATION_TIMEOUT_S each).
+# the real queue (all editions together take ~20 minutes) and even one edition running into
+# GENERATION_TIMEOUT_S. Two editions both hitting it would push a third past the hour and
+# drop it - a pile-up worth a log line, not worth a longer window.
 MISFIRE_GRACE_S = 60 * 60
 
 
